@@ -2,7 +2,7 @@ import insertAfter from "./insertAfter";
 
 export default function addTodoElementToDom (id: number, todoTitle: string) {
     const todoItem = document.createElement("div");
-    todoItem.classList.add('todo__item');
+    todoItem.classList.add('todo');
     todoItem.setAttribute('id', `todo${id}`)
 
     const title = document.createElement('div');
@@ -36,7 +36,7 @@ export default function addTodoElementToDom (id: number, todoTitle: string) {
     // button delete-todo
         // svg/png
 
-    const form = document.querySelector('.todo__input-form') as HTMLFormElement;
+    const form = document.querySelector('.todo__input') as HTMLFormElement;
 
     todoItem.appendChild(title);
     insertAfter(todoItem, form)

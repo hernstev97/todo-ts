@@ -24,7 +24,7 @@
 // 	•	Kompatibilität: Reichen die aktuellsten Browser (Chrome, Firefox, Safari und ggf. Edge)
 // ?jest test, wenn genug zeit
 
-import '../css/style.css';
+import '../css/style.pcss';
 import addTodoElementToDom from "../util/addElementToDom";
 import TodoItem from "../interfaces/TodoItem";
 import {
@@ -34,11 +34,15 @@ import {
 
 let todoItems: TodoItem[] = [];
 
-const app = document.querySelector('.todo');
+const app = document.querySelector('.todo-app');
 
 if (app !== null) {
     const getLocalStorage = window.localStorage.getItem('todoItems');
-    if (getLocalStorage !== null && getLocalStorage !== 'undefined') {
+    if (
+        getLocalStorage !== null
+        && getLocalStorage !== 'undefined'
+        && getLocalStorage !== ''
+    ) {
         todoItems = JSON.parse(getLocalStorage);
         const reversedTodos = [...todoItems].reverse();
         reversedTodos.forEach((item) => {
@@ -46,9 +50,12 @@ if (app !== null) {
         })
     }
 
+    const removeAllItemsButton = document.querySelector('.remove-all-items') as HTMLButtonElement;
+
     const inputField = app.querySelector('.todo__input-field') as HTMLInputElement;
     const form = app.querySelector('.todo__input-form') as HTMLFormElement;
     const checkboxes = app.querySelectorAll('.todo__item-title input[type="checkbox"]');
+    let allTodos = app.querySelectorAll('.todo');
     let inputState: string;
     const limit = 100;
 
@@ -75,9 +82,18 @@ if (app !== null) {
 
         setTodoItemInLocalStorage(todoItems);
         inputField.value = '';
+        allTodos = app.querySelectorAll('.todo');
     })
 
+    removeAllItemsButton.addEventListener('click', (event) => {
+        event.preventDefault();
 
+        window.localStorage.setItem('todoItems', '');
+        todoItems = [];
+        allTodos.forEach(todo => {
+            todo.remove();
+        })
+    })
 }
 
 // render components via js

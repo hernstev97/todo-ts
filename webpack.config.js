@@ -1,6 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 
 module.exports = {
     mode: 'development',
@@ -10,7 +11,7 @@ module.exports = {
     entry: './src/index.ts',
     plugins: [
         new MiniCssExtractPlugin({
-            filename: "[name].[contenthash].css"
+            filename: "[name].min.css"
         }),
         new HtmlWebpackPlugin({
             template: "./src/template.html"
@@ -24,7 +25,7 @@ module.exports = {
                 exclude: /node_modules/,
             },
             {
-                test: /\.css?$/,
+                test: /\.pcss?$/,
                 use: [
                     MiniCssExtractPlugin.loader,
                     "css-loader",
@@ -33,11 +34,18 @@ module.exports = {
             },
         ],
     },
+    optimization: {
+        minimize: true,
+        minimizer: [
+            new CssMinimizerPlugin(),
+        ],
+    },
     resolve: {
         extensions: ['.ts', '.js'],
     },
     output: {
-        filename: 'main.[contenthash].js',
+        filename: 'main.js',
         path: path.resolve(__dirname, 'dist'),
+        clean: true
     },
 };

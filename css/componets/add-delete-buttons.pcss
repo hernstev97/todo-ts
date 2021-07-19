@@ -1,0 +1,44 @@
+.remove-all-items,
+.todo__input-submit {
+    width: 4rem;
+    border-radius: .3rem;
+    appearance: none;
+    border: none;
+    background-color: var(--strong-blue);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.remove-all-items {
+    background-color: var(--delete-red);
+    position: relative;
+
+    span {
+        width: 20px;
+        height: 4px;
+        background-color: currentColor;
+        display: inline-block;
+        border-radius: 4px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+    }
+
+    span:first-of-type {
+        transform: translate(-50%, -50%) rotate(135deg)
+    }
+
+    span:last-of-type {
+        transform: translate(-50%, -50%) rotate(45deg)
+    }
+
+    &:hover {
+        opacity: 1;
+        cursor: pointer;
+    }
+}
+
+.todo__input-submit {
+
+}

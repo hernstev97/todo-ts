@@ -1,3 +1,6 @@
+@import "./componets/remove-all-items.pcss";
+@import "./componets/add-delete-buttons.pcss";
+
 :root {
     /* breakpoints */
     --sm: 360px;
@@ -33,7 +36,7 @@ body {
     background-color: var(--light-gray);
 }
 
-.todo {
+.todo-app {
     padding: 2rem 1rem;
     max-width: var(--breakpoint);
     background-color: white;
@@ -42,43 +45,38 @@ body {
     min-height: 100vh;
 }
 
-.todo__input-form {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.todo__input-field {
-    height: 2rem;
-    width: 100%;
-    border: none;
-    background-color: var(--light-gray);
-    border-radius: .3rem;
-    padding: .5rem;
-    font-size: 0.8rem;
-}
-
-.todo__input-field:focus {
-    outline: none;
-}
-
-.todo__input-submit {
-    width: 4rem;
-    border-radius: .3rem;
-    appearance: none;
-    border: none;
-    background-color: var(--strong-blue);
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.todo__item {
+.todo {
     width: 100%;
     padding: 1rem;
     background-color: var(--light-gray);
     margin-top: 1rem;
     border-radius: 0.3rem;
+
+    &__input {
+        display: flex;
+        gap: 1rem;
+    }
+
+    &__input-form {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    &__input-field {
+        height: 2rem;
+        width: 100%;
+        border: none;
+        background-color: var(--light-gray);
+        border-radius: .3rem;
+        padding: .5rem;
+        font-size: 0.8rem;
+
+        &:focus {
+            outline: none;
+        }
+    }
 }
 
 .todo__item-title > input[type="checkbox"] {
