@@ -31,6 +31,7 @@ import {
     setTodoItemInLocalStorage,
     getTodoItemsInLocalStorage
 } from "../util/todoItemsInlocalStorage";
+import getFontSize from "../util/getFontSize";
 
 let todoItems: TodoItem[] = [];
 
@@ -93,6 +94,15 @@ if (app !== null) {
         allTodos.forEach(todo => {
             todo.remove();
         })
+    })
+
+    allTodos.forEach(todo => {
+        const text = todo.querySelector('.todo__item-label') as HTMLParagraphElement;
+
+        console.log("textt.style.fontSize", text.style)
+
+        if (text.textContent)
+            text.style.fontSize = getFontSize(text, 'desktop')
     })
 }
 

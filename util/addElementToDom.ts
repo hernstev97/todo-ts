@@ -21,8 +21,8 @@ export default function addTodoElementToDom (id: number, todoTitle: string) {
 
     const deleteButton = document.createElement('button');
     deleteButton.classList.add('todo__item-delete');
-    const buttonContent = document.createTextNode("Delete");
-    deleteButton.appendChild(buttonContent)
+    // const buttonContent = document.createTextNode("Delete");
+    // deleteButton.appendChild(buttonContent)
 
     title.appendChild(checkbox);
     titleEditable.appendChild(label)

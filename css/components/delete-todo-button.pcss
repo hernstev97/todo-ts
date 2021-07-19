@@ -1,0 +1,47 @@
+.todo__item-delete {
+    border: none;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: black;
+    position: relative;
+    border-radius: 1.5rem;
+    cursor: pointer;
+    transition: all .2s ease;
+
+    &::before,
+    &::after {
+        content: '';
+        display: inline-block;
+        width: 15px;
+        height: 3px;
+        background-color: white;
+        border-radius: 3px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transition: all .2s ease;
+    }
+
+    &::before {
+        transform: translate(-50%, -50%) rotate(135deg)
+    }
+
+    &::after {
+        transform: translate(-50%, -50%) rotate(45deg)
+    }
+
+    &:hover {
+        background-color: var(--delete-red);
+
+        &::before {
+            transform: translate(-50%, -50%) rotate(225deg)
+        }
+
+        &::after {
+            transform: translate(-50%, -50%) rotate(135deg)
+        }
+    }
+}

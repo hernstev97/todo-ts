@@ -1,40 +1,7 @@
-@import "./componets/remove-all-items.pcss";
-@import "./componets/add-delete-buttons.pcss";
-
-:root {
-    /* breakpoints */
-    --sm: 360px;
-    --md: 720px;
-    --lg: 1280px;
-    --breakpoint: var(--sm);
-
-    /* rem-values */
-    --sm-rem: 16px;
-    --md-rem: 18px;
-    --lg-rem: 20px;
-    --rem: var(--sm-rem);
-
-    /* color values */
-    --light-gray: #f0f0f0;
-    --strong-blue: #2F43DB;
-    --delete-red: #EB202F;
-    --ok-green: #25E858;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html {
-    font-size: var(--rem);
-}
-
-body {
-    font-family: Lato, sans-serif;
-    background-color: var(--light-gray);
-}
+@import "./variables/variables.pcss";
+@import "./misc/misc.pcss";
+@import "./basic-elements/basic-elements.pcss";
+@import "./components/components.pcss";
 
 .todo-app {
     padding: 2rem 1rem;
