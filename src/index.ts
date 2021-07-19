@@ -32,26 +32,25 @@ import {
     getTodoItemsInLocalStorage
 } from "../util/todoItemsInlocalStorage";
 
-let todoitems: TodoItem[] = [];
+let todoItems: TodoItem[] = [];
 
 const app = document.querySelector('.todo');
 
 if (app !== null) {
     const getLocalStorage = window.localStorage.getItem('todoItems');
     if (getLocalStorage !== null && getLocalStorage !== 'undefined') {
-        todoitems = JSON.parse(getLocalStorage);
-        todoitems.forEach((item) => {
+        todoItems = JSON.parse(getLocalStorage);
+        const reversedTodos = [...todoItems].reverse();
+        reversedTodos.forEach((item) => {
             addTodoElementToDom(item.id, item.title);
         })
     }
-    
-    console.log("todoitems", todoitems);
-
 
     const inputField = app.querySelector('.todo__input-field') as HTMLInputElement;
     const form = app.querySelector('.todo__input-form') as HTMLFormElement;
     const checkboxes = app.querySelectorAll('.todo__item-title input[type="checkbox"]');
     let inputState: string;
+    const limit = 100;
 
     inputField.addEventListener('input', (event) => {
         const input = event?.target as HTMLInputElement;
@@ -60,21 +59,22 @@ if (app !== null) {
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();
-        if (todoitems.length >= 100) {
+        if (todoItems.length >= limit) {
             alert('Only 100 entries are possible at the moment.')
             return;
         }
         const todoItem: TodoItem = {
-            id: Math.floor(Math.random() * 100),
+            id: Math.floor(Math.random() * limit),
             title: inputState,
             completed: false,
         }
 
         addTodoElementToDom(todoItem.id, todoItem.title);
 
-        todoitems = [todoItem, ...todoitems];
+        todoItems.unshift(todoItem);
 
-        setTodoItemInLocalStorage(todoitems);
+        setTodoItemInLocalStorage(todoItems);
+        inputField.value = '';
     })
 
 
@@ -83,7 +83,7 @@ if (app !== null) {
 // render components via js
 // build componentes in external files as functions -> todoItem(id, title, completed)
 
-// maybe create a fake state with a list of all todoitems?
+// maybe create a fake state with a list of all todoItems?
 
 // insert
 // get the value from the input field via onchange event
