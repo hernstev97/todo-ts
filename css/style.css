@@ -1,0 +1,132 @@
+:root {
+    /* breakpoints */
+    --sm: 360px;
+    --md: 720px;
+    --lg: 1280px;
+    --breakpoint: var(--sm);
+
+    /* rem-values */
+    --sm-rem: 16px;
+    --md-rem: 18px;
+    --lg-rem: 20px;
+    --rem: var(--sm-rem);
+
+    /* color values */
+    --light-gray: #f0f0f0;
+    --strong-blue: #2F43DB;
+    --delete-red: #EB202F;
+    --ok-green: #25E858;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: var(--rem);
+}
+
+body {
+    font-family: Lato, sans-serif;
+    background-color: var(--light-gray);
+}
+
+.todo {
+    padding: 2rem 1rem;
+    max-width: var(--breakpoint);
+    background-color: white;
+    box-shadow: 0 0 1.25rem 0 rgba(0,0,0,0.2);
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.todo__input-form {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.todo__input-field {
+    height: 2rem;
+    width: 100%;
+    border: none;
+    background-color: var(--light-gray);
+    border-radius: .3rem;
+    padding: .5rem;
+    font-size: 0.8rem;
+}
+
+.todo__input-field:focus {
+    outline: none;
+}
+
+.todo__input-submit {
+    width: 4rem;
+    border-radius: .3rem;
+    appearance: none;
+    border: none;
+    background-color: var(--strong-blue);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.todo__item {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--light-gray);
+    margin-top: 1rem;
+    border-radius: 0.3rem;
+}
+
+.todo__item-title > input[type="checkbox"] {
+    appearance: none;
+    border: 2px solid black;
+    width: 24px;
+    height: 24px;
+    border-radius: 1.5rem;
+    transform: rotate(45deg);
+}
+
+.todo__item-title > input[type="checkbox"]::before,
+.todo__item-title > input[type="checkbox"]::after {
+    content: '';
+    display: inline-block;
+    background-color: black;
+    opacity: 0;
+    border-radius: 4px;
+    width: 4px;
+}
+
+.todo__item-title > input[type="checkbox"]::before {
+    height: 10px;
+    transform: translateY(-3px) translateX(7px) rotate(90deg);
+}
+.todo__item-title > input[type="checkbox"]::after {
+    height: 20px;
+    transform: translateY(-7px) translateX(7px);
+}
+
+
+
+.todo__item-title > input[type="checkbox"]:checked::before,
+.todo__item-title > input[type="checkbox"]:checked::after {
+    opacity: 1;
+}
+
+
+@media only screen and (min-width: 720px) {
+    :root {
+        --breakpoint: var(--md);
+        --rem: var(--md-rem);
+    }
+}
+
+@media only screen and (min-width: 1280px) {
+    :root {
+        --breakpoint: var(--lg);
+        --rem: var(--lg-rem);
+    }
+}
