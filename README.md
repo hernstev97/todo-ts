@@ -3,13 +3,13 @@
 A simple todo app written in typescript that works within the local storage.
 
 ## Features
-1. edit
-2. add
-3. delete
-4. done-state
-5. sort via arrow buttons
-6. sort via drag & drop
-7. save data in local storage
+1. :x: edit
+2. :white_check_mark: add
+3. :x: delete
+4. :white_check_mark: done-state
+5. :x: sort via arrow buttons
+6. :x: sort via drag & drop
+7. :white_check_mark: save data in local storage
 
 ## Technical requirements
 * Responsive
