@@ -3,6 +3,8 @@ import addTodoElementToDom from "../util/addElementToDom";
 import TodoItem from "../interfaces/TodoItem";
 import { setTodoItemInLocalStorage } from "../util/todoItemsInlocalStorage";
 import setFontSizeForEachTodo from "../util/setFontSizeForEachTodo";
+import allItemsRemoveButtonVisibilityHandler from "../util/allItemsRemoveButtonVisibilityHandler";
+import {assignBulkEventListeners, assignSingleEventListener} from "../util/eventListeners";
 
 let todoItems: TodoItem[] = [];
 
@@ -10,6 +12,7 @@ const app = document.querySelector('.todo-app');
 
 if (app !== null) {
     const getLocalStorage = window.localStorage.getItem('todoItems');
+
     if (
         getLocalStorage !== null
         && getLocalStorage !== 'undefined'
@@ -26,20 +29,26 @@ if (app !== null) {
     const inputField = app.querySelector('.todo__input-field') as HTMLInputElement;
     const form = app.querySelector('.todo__input-form') as HTMLFormElement;
     const checkboxes = app.querySelectorAll('.todo__flex-container [type="checkbox"]');
-    const deleteButtons = app.querySelectorAll('.todo__flex-container .todo__item-delete');
+    const deleteButtons = app.querySelectorAll('.todo__item-delete');
     let allTodos = app.querySelectorAll('.todo');
     let inputState: string;
-    const limit = 100;
+    const limit = 10000;
 
-    inputField.addEventListener('input', (event) => {
+    allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+
+    assignSingleEventListener(inputField, 'input', (event) => {
         const input = event?.target as HTMLInputElement;
         inputState = input.value;
     })
 
-    form.addEventListener('submit', (event) => {
+    assignSingleEventListener(form, 'submit', (event) => {
         event.preventDefault();
+        if (inputField.value.length === 0) {
+            return;
+        }
+
         if (todoItems.length >= limit) {
-            alert('Only 100 entries are possible at the moment.')
+            alert(`Only ${limit} entries are possible at the moment.`)
             return;
         }
         const todoItem: TodoItem = {
@@ -55,65 +64,75 @@ if (app !== null) {
         setTodoItemInLocalStorage(todoItems);
         inputField.value = '';
         allTodos = app.querySelectorAll('.todo');
+        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
     })
 
-    removeAllItemsButton.addEventListener('click', (event) => {
+    assignSingleEventListener(removeAllItemsButton, 'click', (event) => {
         event.preventDefault();
 
+        console.log("test");
         window.localStorage.setItem('todoItems', '');
         todoItems = [];
         allTodos.forEach(todo => {
+            console.log("todo", todo)
             todo.remove();
         })
+        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
     })
 
-    checkboxes.forEach(check => {
-        check.addEventListener('change', (event) => {
-            const element = event.currentTarget as HTMLElement;
-            const id = element.dataset.id;
-            const currentTodo = todoItems.find(item => `${item.id}` === id);
-            const parent = element.parentElement?.parentElement;
+    assignBulkEventListeners(checkboxes, 'change', (event) => {
+        const element = event.currentTarget as HTMLElement;
+        const id = element.dataset.id;
+        const currentTodo = todoItems.find(item => `${item.id}` === id);
+        const parent = element.parentElement?.parentElement;
 
-            if (currentTodo === undefined) return;
-            
-            currentTodo.completed = !currentTodo.completed;
+        if (currentTodo === undefined) return;
 
-            setTimeout(() => {
-                if (currentTodo.completed)
-                    parent?.classList.add('todo--completed');
-                else
-                    parent?.classList.remove('todo--completed');
-            }, 200)
+        currentTodo.completed = !currentTodo.completed;
+
+        setTimeout(() => {
+            if (currentTodo.completed)
+                parent?.classList.add('todo--completed');
+            else
+                parent?.classList.remove('todo--completed');
+        }, 200)
 
 
-            setTodoItemInLocalStorage(todoItems);
-        })
+        setTodoItemInLocalStorage(todoItems);
     })
+    
+    // change eventlistener management
+    // currently a page reload has to be done in order for
+    // everything to work correctly after any interaction
+    // @todo after each interaction remove and re-add eventlisteners
+    // @todo also re-assign the nessecary variables with its new values
+    assignBulkEventListeners(deleteButtons, 'click', (event) => {
+        event.preventDefault();
+        const target = event.currentTarget as HTMLButtonElement;
+        const id = target.dataset.id;
+        const parent = Array.from(allTodos).find(todo => todo.getAttribute('data-id') === id);
+        const currentTodo = todoItems.find(item => `${item.id}` === id);
+        const currentTodoIndex = currentTodo ? todoItems.indexOf(currentTodo) : -1;
 
-    deleteButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            const target = event.currentTarget as HTMLButtonElement;
-            const id = target.dataset.id;
-            const parent = Array.from(allTodos).find(todo => todo.getAttribute('data-id') === id);
-            const currentTodo = todoItems.find(item => `${item.id}` === id);
-            const currentTodoIndex = currentTodo ? todoItems.indexOf(currentTodo) : -1;
+        console.log("target", target)
 
-            for (let i = 0; i < todoItems.length; i++) {
-                if (i === currentTodoIndex) {
-                    todoItems.splice(i, 1);
-                }
+        for (let i = 0; i < todoItems.length; i++) {
+            if (i === currentTodoIndex) {
+                todoItems.splice(i, 1);
             }
+        }
 
-            parent?.remove();
-            setTodoItemInLocalStorage(todoItems);
-        })
+        parent?.remove();
+        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+        setTodoItemInLocalStorage(todoItems);
     })
 
     // first gets the font size via a text length comparison
     // then sets it to a value between 0.8 and 1.4 depending on
     // deviceOutput and which threshold is passed
     setFontSizeForEachTodo(allTodos, 'mobile');
+
+
 }
 
 // maybe create a fake state with a list of all todoItems?
