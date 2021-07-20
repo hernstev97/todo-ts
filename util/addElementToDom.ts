@@ -3,6 +3,8 @@ import insertAfter from "./insertAfter";
 export default function addTodoElementToDom (id: number, todoTitle: string, completed: boolean) {
     const todoItem = document.createElement("div");
     todoItem.classList.add('todo');
+    if (completed)
+        todoItem.classList.add('todo--completed');
     todoItem.setAttribute('id', `todo${id}`)
 
     const title = document.createElement('div');
@@ -49,8 +51,8 @@ export default function addTodoElementToDom (id: number, todoTitle: string, comp
     moveDeleteWrapper.appendChild(deleteButton)
     moveDeleteWrapper.appendChild(moveDownButtonContainer)
 
-    const form = document.querySelector('.todo__input') as HTMLFormElement;
+    const todoList = document.querySelector('.todo-list') as HTMLDivElement;
 
     todoItem.appendChild(title);
-    insertAfter(todoItem, form)
+    todoList.appendChild(todoItem);
 }

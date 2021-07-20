@@ -98,10 +98,19 @@ if (app !== null) {
             const element = event.currentTarget as Element;
             const id = element?.getAttribute('data-id');
             const currentTodo = todoItems.find(item => `${item.id}` === id);
+            const parent = element.parentElement?.parentElement;
 
             if (currentTodo === undefined) return;
             
             currentTodo.completed = !currentTodo.completed;
+
+            setTimeout(() => {
+                if (currentTodo.completed)
+                    parent?.classList.add('todo--completed');
+                else
+                    parent?.classList.remove('todo--completed');
+            }, 200)
+
 
             setTodoItemInLocalStorage(todoItems);
         })
