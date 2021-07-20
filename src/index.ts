@@ -1,29 +1,3 @@
-// Funktionale Vorgaben
-// 	@todo editieren
-// 	DONE einfügen
-// 	@todo löschen
-// 	DONE Erledigt-Status
-// 	@todo Sortierung mit Buttons (arrow up / down)
-// 	DONE Daten sollten im Local Storage abgespeichert werden
-// 	DONE Responsive
-// 	    ⁃	mobile: 360x
-// 	    ⁃	tablet: 720
-// 	    ⁃	desktop: 1280px
-// 	DONE REM statt pixel verwenden
-// 	    ⁃	mobile 1rem: 16px
-// 	    ⁃	Tablet: 18px
-// 	    ⁃	desktop: 20px
-//  @todo Sortierung via Drag'n'Drop
-//
-// Technische Vorgaben
-// 	•	DONE jQuery, css framework verboten
-// 	•	DONE keine Libs außer Webpack zum Projekt aufsetzen (Webpack, gulp, parcel)
-// 	•	DONECSS: PostCSS verwenden
-// 	•	DONE plain javascript
-// 	•	DONE typescript
-// 	•	DONE Kompatibilität: Reichen die aktuellsten Browser (Chrome, Firefox, Safari und ggf. Edge)
-// ?jest test, wenn genug zeit
-
 import '../css/style.pcss';
 import addTodoElementToDom from "../util/addElementToDom";
 import TodoItem from "../interfaces/TodoItem";
@@ -122,15 +96,7 @@ if (app !== null) {
     setFontSizeForEachTodo(allTodos, 'mobile');
 }
 
-// render components via js
-// build componentes in external files as functions -> todoItem(id, title, completed)
-
 // maybe create a fake state with a list of all todoItems?
-
-// insert
-// get the value from the input.pcss field via onchange event
-// on submit fill component with value, new id and completed = false
-// create component
 
 // delete
 // with click on a button ...
@@ -140,11 +106,6 @@ if (app !== null) {
 // remove text and place input.pcss field with same value
 // get the value from the input.pcss field via onchange event
 // on submit fill component with new text value
-
-// done
-// set checkbox to true
-// then change completed to true
-// change classname of component
 
 // sort
 // use array function

@@ -1,5 +1,3 @@
-import insertAfter from "./insertAfter";
-
 export default function addTodoElementToDom (id: number, todoTitle: string, completed: boolean) {
     const todoItem = document.createElement("div");
     todoItem.classList.add('todo');
