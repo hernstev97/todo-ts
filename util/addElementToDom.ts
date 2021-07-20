@@ -3,7 +3,7 @@ export default function addTodoElementToDom (id: number, todoTitle: string, comp
     todoItem.classList.add('todo');
     if (completed)
         todoItem.classList.add('todo--completed');
-    todoItem.setAttribute('id', `todo${id}`)
+    todoItem.setAttribute('data-id', `${id}`);
 
     const title = document.createElement('div');
     title.classList.add('todo__flex-container');
@@ -28,6 +28,7 @@ export default function addTodoElementToDom (id: number, todoTitle: string, comp
 
     const deleteButton = document.createElement('button');
     deleteButton.classList.add('todo__item-delete');
+    deleteButton.setAttribute('data-id', `${id}`);
 
     const moveUpButtonContainer = document.createElement('button');
     moveUpButtonContainer.classList.add('todo__move');

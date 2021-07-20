@@ -23,10 +23,10 @@ if (app !== null) {
     }
 
     const removeAllItemsButton = document.querySelector('.remove-all-items') as HTMLButtonElement;
-
     const inputField = app.querySelector('.todo__input-field') as HTMLInputElement;
     const form = app.querySelector('.todo__input-form') as HTMLFormElement;
     const checkboxes = app.querySelectorAll('.todo__flex-container [type="checkbox"]');
+    const deleteButtons = app.querySelectorAll('.todo__flex-container .todo__item-delete');
     let allTodos = app.querySelectorAll('.todo');
     let inputState: string;
     const limit = 100;
@@ -69,8 +69,8 @@ if (app !== null) {
 
     checkboxes.forEach(check => {
         check.addEventListener('change', (event) => {
-            const element = event.currentTarget as Element;
-            const id = element?.getAttribute('data-id');
+            const element = event.currentTarget as HTMLElement;
+            const id = element.dataset.id;
             const currentTodo = todoItems.find(item => `${item.id}` === id);
             const parent = element.parentElement?.parentElement;
 
@@ -86,6 +86,26 @@ if (app !== null) {
             }, 200)
 
 
+            setTodoItemInLocalStorage(todoItems);
+        })
+    })
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            const target = event.currentTarget as HTMLButtonElement;
+            const id = target.dataset.id;
+            const parent = Array.from(allTodos).find(todo => todo.getAttribute('data-id') === id);
+            const currentTodo = todoItems.find(item => `${item.id}` === id);
+            const currentTodoIndex = currentTodo ? todoItems.indexOf(currentTodo) : -1;
+
+            for (let i = 0; i < todoItems.length; i++) {
+                if (i === currentTodoIndex) {
+                    todoItems.splice(i, 1);
+                }
+            }
+
+            parent?.remove();
             setTodoItemInLocalStorage(todoItems);
         })
     })
