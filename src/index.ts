@@ -1,37 +1,34 @@
 // Funktionale Vorgaben
 // 	@todo editieren
-// 	einfügen
+// 	DONE einfügen
 // 	@todo löschen
 // 	@todo Erledigt-Status
 // 	@todo Sortierung mit Buttons (arrow up / down)
-// 	Daten sollten im Local Storage abgespeichert werden
-// 	Responsive
+// 	DONE Daten sollten im Local Storage abgespeichert werden
+// 	DONE Responsive
 // 	    ⁃	mobile: 360x
 // 	    ⁃	tablet: 720
 // 	    ⁃	desktop: 1280px
-// 	REM statt pixel verwenden
+// 	DONE REM statt pixel verwenden
 // 	    ⁃	mobile 1rem: 16px
 // 	    ⁃	Tablet: 18px
 // 	    ⁃	desktop: 20px
 //  @todo Sortierung via Drag'n'Drop
 //
 // Technische Vorgaben
-// 	•	jQuery, css framework verboten
-// 	•	keine Libs außer Webpack zum Projekt aufsetzen (Webpack, gulp, parcel)
-// 	•	@todo CSS: PostCSS verwenden
-// 	•	plain javascript
-// 	•	?typescript
-// 	•	Kompatibilität: Reichen die aktuellsten Browser (Chrome, Firefox, Safari und ggf. Edge)
+// 	•	DONE jQuery, css framework verboten
+// 	•	DONE keine Libs außer Webpack zum Projekt aufsetzen (Webpack, gulp, parcel)
+// 	•	DONECSS: PostCSS verwenden
+// 	•	DONE plain javascript
+// 	•	DONE typescript
+// 	•	DONE Kompatibilität: Reichen die aktuellsten Browser (Chrome, Firefox, Safari und ggf. Edge)
 // ?jest test, wenn genug zeit
 
 import '../css/style.pcss';
 import addTodoElementToDom from "../util/addElementToDom";
 import TodoItem from "../interfaces/TodoItem";
-import {
-    setTodoItemInLocalStorage,
-    getTodoItemsInLocalStorage
-} from "../util/todoItemsInlocalStorage";
-import getFontSize from "../util/getFontSize";
+import { setTodoItemInLocalStorage } from "../util/todoItemsInlocalStorage";
+import setFontSizeForEachTodo from "../util/setFontSizeForEachTodo";
 
 let todoItems: TodoItem[] = [];
 
@@ -55,7 +52,7 @@ if (app !== null) {
 
     const inputField = app.querySelector('.todo__input-field') as HTMLInputElement;
     const form = app.querySelector('.todo__input-form') as HTMLFormElement;
-    const checkboxes = app.querySelectorAll('.todo__item-title input[type="checkbox"]');
+    const checkboxes = app.querySelectorAll('.todo__flex-container input.pcss[type="checkbox"]');
     let allTodos = app.querySelectorAll('.todo');
     let inputState: string;
     const limit = 100;
@@ -96,14 +93,10 @@ if (app !== null) {
         })
     })
 
-    allTodos.forEach(todo => {
-        const text = todo.querySelector('.todo__item-label') as HTMLParagraphElement;
-
-        console.log("textt.style.fontSize", text.style)
-
-        if (text.textContent)
-            text.style.fontSize = getFontSize(text, 'desktop')
-    })
+    // first gets the font size via a text length comparison
+    // then sets it to a value between 0.8 and 1.4 depending on
+    // deviceOutput and which threshold is passed
+    setFontSizeForEachTodo(allTodos, 'mobile');
 }
 
 // render components via js
@@ -112,7 +105,7 @@ if (app !== null) {
 // maybe create a fake state with a list of all todoItems?
 
 // insert
-// get the value from the input field via onchange event
+// get the value from the input.pcss field via onchange event
 // on submit fill component with value, new id and completed = false
 // create component
 
@@ -121,8 +114,8 @@ if (app !== null) {
 
 // edit
 // dblclick on text
-// remove text and place input field with same value
-// get the value from the input field via onchange event
+// remove text and place input.pcss field with same value
+// get the value from the input.pcss field via onchange event
 // on submit fill component with new text value
 
 // done

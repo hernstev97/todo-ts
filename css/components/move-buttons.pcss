@@ -1,0 +1,44 @@
+.todo__move {
+    appearance: none;
+    border: none;
+    height: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+
+    div {
+        width: 0;
+        height: 0;
+        border-style: solid;
+        transition: transform 0.2s ease;
+    }
+
+    &--up {
+        div {
+            border-width: 0 10px 12px 10px;
+            border-color: transparent transparent var(--move-arrows) transparent;
+        }
+
+        &:hover div {
+            transform: translateY(-5px);
+        }
+    }
+
+    &--down {
+        div {
+            border-width: 12px 10px 0 10px;
+            border-color: var(--move-arrows) transparent transparent transparent;
+        }
+
+        &:hover div {
+            transform: translateY(5px);
+        }
+    }
+
+    &--disabled {
+        --move-arrows: #999999;
+        cursor: not-allowed;
+    }
+}

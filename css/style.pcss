@@ -30,57 +30,7 @@
         gap: 1rem;
         width: 100%;
     }
-
-    &__input-field {
-        height: 2rem;
-        width: 100%;
-        border: none;
-        background-color: var(--light-gray);
-        border-radius: .3rem;
-        padding: .5rem;
-        font-size: 0.8rem;
-
-        &:focus {
-            outline: none;
-        }
-    }
 }
-
-.todo__item-title > input[type="checkbox"] {
-    appearance: none;
-    border: 2px solid black;
-    width: 24px;
-    height: 24px;
-    border-radius: 1.5rem;
-    transform: rotate(45deg);
-}
-
-.todo__item-title > input[type="checkbox"]::before,
-.todo__item-title > input[type="checkbox"]::after {
-    content: '';
-    display: inline-block;
-    background-color: black;
-    opacity: 0;
-    border-radius: 4px;
-    width: 4px;
-}
-
-.todo__item-title > input[type="checkbox"]::before {
-    height: 10px;
-    transform: translateY(-3px) translateX(7px) rotate(90deg);
-}
-.todo__item-title > input[type="checkbox"]::after {
-    height: 20px;
-    transform: translateY(-7px) translateX(7px);
-}
-
-
-
-.todo__item-title > input[type="checkbox"]:checked::before,
-.todo__item-title > input[type="checkbox"]:checked::after {
-    opacity: 1;
-}
-
 
 @media only screen and (min-width: 720px) {
     :root {
