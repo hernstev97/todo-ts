@@ -2,7 +2,7 @@
 // 	@todo editieren
 // 	DONE einfügen
 // 	@todo löschen
-// 	@todo Erledigt-Status
+// 	DONE Erledigt-Status
 // 	@todo Sortierung mit Buttons (arrow up / down)
 // 	DONE Daten sollten im Local Storage abgespeichert werden
 // 	DONE Responsive
@@ -44,7 +44,7 @@ if (app !== null) {
         todoItems = JSON.parse(getLocalStorage);
         const reversedTodos = [...todoItems].reverse();
         reversedTodos.forEach((item) => {
-            addTodoElementToDom(item.id, item.title);
+            addTodoElementToDom(item.id, item.title, item.completed);
         })
     }
 
@@ -52,7 +52,7 @@ if (app !== null) {
 
     const inputField = app.querySelector('.todo__input-field') as HTMLInputElement;
     const form = app.querySelector('.todo__input-form') as HTMLFormElement;
-    const checkboxes = app.querySelectorAll('.todo__flex-container input.pcss[type="checkbox"]');
+    const checkboxes = app.querySelectorAll('.todo__flex-container [type="checkbox"]');
     let allTodos = app.querySelectorAll('.todo');
     let inputState: string;
     const limit = 100;
@@ -74,7 +74,7 @@ if (app !== null) {
             completed: false,
         }
 
-        addTodoElementToDom(todoItem.id, todoItem.title);
+        addTodoElementToDom(todoItem.id, todoItem.title, todoItem.completed);
 
         todoItems.unshift(todoItem);
 
@@ -90,6 +90,20 @@ if (app !== null) {
         todoItems = [];
         allTodos.forEach(todo => {
             todo.remove();
+        })
+    })
+
+    checkboxes.forEach(check => {
+        check.addEventListener('change', (event) => {
+            const element = event.currentTarget as Element;
+            const id = element?.getAttribute('data-id');
+            const currentTodo = todoItems.find(item => `${item.id}` === id);
+
+            if (currentTodo === undefined) return;
+            
+            currentTodo.completed = !currentTodo.completed;
+
+            setTodoItemInLocalStorage(todoItems);
         })
     })
 

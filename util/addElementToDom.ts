@@ -1,6 +1,6 @@
 import insertAfter from "./insertAfter";
 
-export default function addTodoElementToDom (id: number, todoTitle: string) {
+export default function addTodoElementToDom (id: number, todoTitle: string, completed: boolean) {
     const todoItem = document.createElement("div");
     todoItem.classList.add('todo');
     todoItem.setAttribute('id', `todo${id}`)
@@ -10,6 +10,9 @@ export default function addTodoElementToDom (id: number, todoTitle: string) {
 
     const checkbox = document.createElement('input');
     checkbox.setAttribute('type', 'checkbox');
+    checkbox.setAttribute('data-id', `${id}`);
+    if (completed)
+        checkbox.setAttribute('checked', '');
 
     // @todo later change to todo__title--edit when being edited
     const titleEditable = document.createElement('div');
