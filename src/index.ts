@@ -4,11 +4,13 @@ import TodoItem from "../interfaces/TodoItem";
 import { setTodoItemInLocalStorage } from "../util/todoItemsInlocalStorage";
 import setFontSizeForEachTodo from "../util/setFontSizeForEachTodo";
 import allItemsRemoveButtonVisibilityHandler from "../util/allItemsRemoveButtonVisibilityHandler";
-import {assignBulkEventListeners, assignSingleEventListener} from "../util/eventListeners";
+import {assignBulkEventListeners, assignSingleEventListener, removeBulkEventListeners} from "../util/eventListeners";
 
 let todoItems: TodoItem[] = [];
 
 const app = document.querySelector('.todo-app');
+
+// todo decide if Class based system might be better
 
 if (app !== null) {
     const getLocalStorage = window.localStorage.getItem('todoItems');
@@ -28,22 +30,75 @@ if (app !== null) {
     const removeAllItemsButton = document.querySelector('.remove-all-items') as HTMLButtonElement;
     const inputField = app.querySelector('.todo__input-field') as HTMLInputElement;
     const form = app.querySelector('.todo__input-form') as HTMLFormElement;
-    const checkboxes = app.querySelectorAll('.todo__flex-container [type="checkbox"]');
-    const deleteButtons = app.querySelectorAll('.todo__item-delete');
     let allTodos = app.querySelectorAll('.todo');
+    let checkboxes = app.querySelectorAll('.todo__flex-container [type="checkbox"]');
+    let deleteButtons = app.querySelectorAll('.todo__item-delete');
     let inputState: string;
     const limit = 10000;
 
+    // hides or shows the button for deleting all todos
+    // shows it only if at least 1 todoitem exists
     allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
 
-    assignSingleEventListener(inputField, 'input', (event) => {
+    function setInputState(event: Event) {
         const input = event?.target as HTMLInputElement;
         inputState = input.value;
-    })
+    }
 
-    assignSingleEventListener(form, 'submit', (event) => {
+    function changeCompletedState(event: Event) {
+        const element = event.currentTarget as HTMLElement;
+        const id = element.dataset.id;
+        const currentTodo = todoItems.find(item => `${item.id}` === id);
+        const parent = element.parentElement?.parentElement;
+
+        if (currentTodo === undefined) return;
+
+        currentTodo.completed = !currentTodo.completed;
+
+        setTimeout(() => {
+            if (currentTodo.completed)
+                parent?.classList.add('todo--completed');
+            else
+                parent?.classList.remove('todo--completed');
+        }, 200)
+
+
+        setTodoItemInLocalStorage(todoItems);
+    }
+
+    function deleteAllTodoItems(event: Event) {
         event.preventDefault();
-        if (inputField.value.length === 0) {
+
+        window.localStorage.setItem('todoItems', '');
+        todoItems = [];
+        allTodos.forEach(todo => {
+            todo.remove();
+        })
+        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+    }
+
+    function deleteSingleTodoItem(event: Event) {
+        event.preventDefault();
+        const target = event.currentTarget as HTMLButtonElement;
+        const id = target.dataset.id;
+        const parent = Array.from(allTodos).find(todo => todo.getAttribute('data-id') === id);
+        const currentTodo = todoItems.find(item => `${item.id}` === id);
+        const currentTodoIndex = currentTodo ? todoItems.indexOf(currentTodo) : -1;
+
+        for (let i = 0; i < todoItems.length; i++) {
+            if (i === currentTodoIndex) {
+                todoItems.splice(i, 1);
+            }
+        }
+
+        parent?.remove();
+        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+        setTodoItemInLocalStorage(todoItems);
+    }
+
+    function generateTodoAfterSubmit(event: Event) {
+        event.preventDefault();
+        if (inputField.value.length === 0 || app === null) {
             return;
         }
 
@@ -65,71 +120,30 @@ if (app !== null) {
         inputField.value = '';
         allTodos = app.querySelectorAll('.todo');
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-    })
 
-    assignSingleEventListener(removeAllItemsButton, 'click', (event) => {
-        event.preventDefault();
+        checkboxes = app.querySelectorAll('.todo__flex-container [type="checkbox"]');
+        removeBulkEventListeners(checkboxes, 'change', changeCompletedState);
+        assignBulkEventListeners(checkboxes, 'change', changeCompletedState);
 
-        console.log("test");
-        window.localStorage.setItem('todoItems', '');
-        todoItems = [];
-        allTodos.forEach(todo => {
-            console.log("todo", todo)
-            todo.remove();
-        })
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-    })
+        deleteButtons = app.querySelectorAll('.todo__item-delete');
+        removeBulkEventListeners(deleteButtons, 'click', deleteSingleTodoItem)
+        assignBulkEventListeners(deleteButtons, 'click', deleteSingleTodoItem)
+    }
 
-    assignBulkEventListeners(checkboxes, 'change', (event) => {
-        const element = event.currentTarget as HTMLElement;
-        const id = element.dataset.id;
-        const currentTodo = todoItems.find(item => `${item.id}` === id);
-        const parent = element.parentElement?.parentElement;
+    assignSingleEventListener(inputField, 'input', setInputState)
 
-        if (currentTodo === undefined) return;
+    assignSingleEventListener(form, 'submit', generateTodoAfterSubmit)
 
-        currentTodo.completed = !currentTodo.completed;
+    assignBulkEventListeners(checkboxes, 'change', changeCompletedState);
 
-        setTimeout(() => {
-            if (currentTodo.completed)
-                parent?.classList.add('todo--completed');
-            else
-                parent?.classList.remove('todo--completed');
-        }, 200)
+    assignSingleEventListener(removeAllItemsButton, 'click', deleteAllTodoItems)
 
-
-        setTodoItemInLocalStorage(todoItems);
-    })
-    
-    // change eventlistener management
-    // currently a page reload has to be done in order for
-    // everything to work correctly after any interaction
-    // @todo after each interaction remove and re-add eventlisteners
-    // @todo also re-assign the nessecary variables with its new values
-    assignBulkEventListeners(deleteButtons, 'click', (event) => {
-        event.preventDefault();
-        const target = event.currentTarget as HTMLButtonElement;
-        const id = target.dataset.id;
-        const parent = Array.from(allTodos).find(todo => todo.getAttribute('data-id') === id);
-        const currentTodo = todoItems.find(item => `${item.id}` === id);
-        const currentTodoIndex = currentTodo ? todoItems.indexOf(currentTodo) : -1;
-
-        console.log("target", target)
-
-        for (let i = 0; i < todoItems.length; i++) {
-            if (i === currentTodoIndex) {
-                todoItems.splice(i, 1);
-            }
-        }
-
-        parent?.remove();
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-        setTodoItemInLocalStorage(todoItems);
-    })
+    assignBulkEventListeners(deleteButtons, 'click', deleteSingleTodoItem)
 
     // first gets the font size via a text length comparison
     // then sets it to a value between 0.8 and 1.4 depending on
     // deviceOutput and which threshold is passed
+    // todo add resize listener that sets a variable 'deviceOutput'
     setFontSizeForEachTodo(allTodos, 'mobile');
 
 

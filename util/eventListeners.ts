@@ -19,3 +19,25 @@ export function assignBulkEventListeners(
         })
     })
 }
+
+export function removeSingleEventListener(
+    element: any,
+    eventType: string,
+    callbackFunction: (event: Event) => void
+) {
+    element.removeEventListener(eventType, (event: Event) => {
+        callbackFunction(event);
+    })
+}
+
+export function removeBulkEventListeners(
+    elements: NodeListOf<Element>,
+    eventType: string,
+    callbackFunction: (event: Event) => void
+) {
+    elements.forEach(element => {
+        element.removeEventListener(eventType, (event) => {
+            callbackFunction(event);
+        })
+    })
+}
