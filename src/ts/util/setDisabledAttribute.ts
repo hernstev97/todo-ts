@@ -1,5 +1,4 @@
 // todo rename file
-
 export const setDisabledAttribute = <T extends Element>(selector: T, elementToDisable: string) => {
     if (selector.querySelector(elementToDisable) === null) {
         return;

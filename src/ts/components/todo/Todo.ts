@@ -18,7 +18,7 @@ export const todo = () => {
     let deleteSingleTodoButtonList = componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]');
     let dragAndDropSortGrabberList = componentRoot.querySelectorAll('[data-todo="dragAndDropSortGrabber"]');
     let todoItems: TodoItem[] = [];
-    let inputState: string;
+    let inputState: string = '';
     let isCurrentlyHoldingItem: boolean;
     let heldGrabber: HTMLDivElement | null; // todo ?rename
     let currentlyMovableTodo: HTMLDivElement | null;
@@ -39,17 +39,13 @@ export const todo = () => {
 
         addTodoFormElement.addEventListener('submit', handleFormSubmit)
 
-        removeAllItemsButton.addEventListener('click', deleteAllTodos)
+        removeAllItemsButton.addEventListener('click', handleDeleteAllTodos)
 
-        // window.addEventListener( 'mouseup', releaseItemHandler)
+        window.addEventListener( 'mouseup', releaseItemHandler)
 
         assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
 
-        // todoDoneCheckboxList.forEach(element => {
-        //     element.addEventListener('change', toggleTodoComplete)
-        // })
-
-        assignBulkEventListeners(deleteSingleTodoButtonList, 'click', deleteSingleTodo)
+        assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo)
 
         assignBulkEventListeners(dragAndDropSortGrabberList, 'mousedown', holdItemHandler)
 
@@ -95,6 +91,8 @@ export const todo = () => {
         inputState = input.value;
     }
 
+    // todo make sure not to use optional chaining when setting variables to dom elements.
+    //  make sure for the whole project
     const toggleTodoComplete = (event: Event) => {
         const element = event.currentTarget as HTMLElement;
         const id = element.dataset.id;
@@ -114,6 +112,8 @@ export const todo = () => {
         setObjectInLocalStorage('todoItems', todoItems);
     }
 
+    // todo make sure every function is as generic and reusable as possible
+    //  its use should be obvious
     const setDisabledSortButtons = () => {
         if (todoItems.length > 0) {
             const firstTodo = todoDomElementList[0];
@@ -127,6 +127,11 @@ export const todo = () => {
         }
     }
 
+    const handleDeleteAllTodos = (event: Event) => {
+        deleteAllTodos(event)
+        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+    }
+
     const deleteAllTodos = (event: Event) => {
         event.preventDefault();
 
@@ -137,6 +142,11 @@ export const todo = () => {
         todoDomElementList.forEach(todo => {
             todo.remove();
         })
+    }
+
+    const handleDeleteTodo = (event: Event) => {
+        deleteSingleTodo(event)
+        setDisabledSortButtons();
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
     }
 
@@ -155,8 +165,10 @@ export const todo = () => {
         }
 
         parent?.remove();
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+
         setObjectInLocalStorage('todoItems', todoItems);
+        todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
+
         if (todoItems.length === 0) {
             setObjectInLocalStorage('currentMaxIndex', null)
             currentMaxIndex = 0;
@@ -164,13 +176,14 @@ export const todo = () => {
     }
 
     // each function should serve 1 purpose and be relatively generic. it should be usable at multiple places.
-    // todo wrapperfunction for 2 new functions with single purpose
     const handleFormSubmit = (event: Event) => {
         event.preventDefault();
-        addTodoItem();
-        createNewTodoDOMElement();
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-        setDisabledSortButtons();
+        if (inputState.length > 0) {
+            addTodoItem();
+            createNewTodoDOMElement();
+            allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+            setDisabledSortButtons();
+        }
     }
 
     const addTodoItem = () => {
@@ -190,6 +203,7 @@ export const todo = () => {
         setObjectInLocalStorage('todoItems', todoItems);
         setObjectInLocalStorage('currentMaxIndex', currentMaxIndex);
         addTodoTextInput.value = '';
+        inputState = '';
     }
 
     const createNewTodoDOMElement = () => {
@@ -203,7 +217,7 @@ export const todo = () => {
 
         setInteractionElements();
         todoDoneCheckboxList[indexForNewItem].addEventListener('change', toggleTodoComplete)
-        deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', deleteSingleTodo)
+        deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', handleDeleteTodo)
         dragAndDropSortGrabberList[indexForNewItem].addEventListener('mousedown', holdItemHandler)
     }
 

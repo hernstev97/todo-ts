@@ -14,7 +14,9 @@
     background-color: var(--delete-red);
     position: relative;
 
-    span {
+    &::before,
+    &::after {
+        content: '';
         width: 20px;
         height: 4px;
         background-color: currentColor;
@@ -25,11 +27,11 @@
         top: 50%;
     }
 
-    span:first-of-type {
+    &::before {
         transform: translate(-50%, -50%) rotate(135deg)
     }
 
-    span:last-of-type {
+    &::after {
         transform: translate(-50%, -50%) rotate(45deg)
     }
 
