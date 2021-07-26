@@ -12,11 +12,11 @@ export default function addTodoElementToDom(todoItem: TodoItem) {
                     <p class="todo__label">${todoItem.title}</p>
                 </div>
                 <div class="todo__move-delete-wrapper">
-                    <button class="todo__move todo__move--up" data-moveTodoInDirection="up">
+                    <button class="todo__move todo__move--up" data-id="${todoItem.id}" data-moveTodoInDirection="up">
                         <div></div>
                     </button>
                     <button data-todo="deleteSingleTodoButton" class="todo__item-delete" data-id="${todoItem.id}"></button>
-                    <button class="todo__move todo__move--down" data-moveTodoInDirection="down">
+                    <button class="todo__move todo__move--down" data-id="${todoItem.id}" data-moveTodoInDirection="down">
                         <div></div>
                     </button>
                 </div>
