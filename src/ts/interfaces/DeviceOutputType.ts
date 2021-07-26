@@ -1,0 +1,1 @@
+export type DeviceOutputType = 'desktop' | 'tablet' | 'mobile';
