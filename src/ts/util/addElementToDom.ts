@@ -24,5 +24,10 @@ export default function addTodoElementToDom(todoItem: TodoItem) {
             <div data-todo="dragAndDropSortGrabber" class="todo__grabber"></div>
         </div>`
 
-    todoList.innerHTML += todoDomElement;
+    // todoList.innerHTML += todoDomElement;
+    // had to change from innerHTML to insertAdjacentHTML because with innerHTML
+    // all the domelements are basically rebuild. so all event listeners would have to be reset. see the link below.
+    // https://stackoverflow.com/questions/5113105/manipulating-innerhtml-removes-the-event-handler-of-a-child-element
+    todoList.insertAdjacentHTML('beforeend', todoDomElement)
+
 }

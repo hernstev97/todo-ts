@@ -5,7 +5,7 @@ import setFontSizeForEachTodo from "../../util/setFontSizeForEachTodo";
 import { getDeviceOutput } from "../../util/getDeviceOutput";
 import { getObjectInLocalStorage, setObjectInLocalStorage } from "../../util/setObjectInLocalStorage";
 import addTodoElementToDom from "../../util/addElementToDom";
-import { setDisabledAttribute } from "../../util/setDisabledAttribute";
+import { setDisabledAttribute, removeDisabledAttribute } from "../../util/setDisabledAttribute";
 
 export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
@@ -28,32 +28,26 @@ export const todo = () => {
 
     const init = () => {
         buildTodosFromLocalStorage();
-
-        todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
-        todoDoneCheckboxList = componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]');
-        deleteSingleTodoButtonList = componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]');
-        dragAndDropSortGrabberList = componentRoot.querySelectorAll('[data-todo="dragAndDropSortGrabber"]');
-
+        setInteractionElements();
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
         setDisabledSortButtons();
         bindEvents();
     }
 
     const bindEvents = () => {
-        console.log("bindEvents()")
         addTodoTextInput.addEventListener( 'input', setInputState)
 
         addTodoFormElement.addEventListener('submit', handleFormSubmit)
 
         removeAllItemsButton.addEventListener('click', deleteAllTodos)
 
-        window.addEventListener( 'mouseup', releaseItemHandler)
+        // window.addEventListener( 'mouseup', releaseItemHandler)
 
-        // assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
+        assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
 
-        todoDoneCheckboxList.forEach(element => {
-            element.addEventListener('change', toggleTodoComplete)
-        })
+        // todoDoneCheckboxList.forEach(element => {
+        //     element.addEventListener('change', toggleTodoComplete)
+        // })
 
         assignBulkEventListeners(deleteSingleTodoButtonList, 'click', deleteSingleTodo)
 
@@ -74,8 +68,15 @@ export const todo = () => {
     const buildTodosFromLocalStorage = () => {
         todoItems = getObjectInLocalStorage('todoItems')
         currentMaxIndex = getObjectInLocalStorage('currentMaxIndex')
-        console.log("currentMaxIndex", currentMaxIndex)
         renderAllTodos(todoItems);
+    }
+
+    // todo rename
+    const setInteractionElements = () => {
+        todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
+        todoDoneCheckboxList = componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]');
+        deleteSingleTodoButtonList = componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]');
+        dragAndDropSortGrabberList = componentRoot.querySelectorAll('[data-todo="dragAndDropSortGrabber"]');
     }
 
     const renderAllTodos = (todos: TodoItem[]) => {
@@ -89,56 +90,12 @@ export const todo = () => {
         });
     }
 
-    // ================ //
-    // DRAG N DROP SORT //
-    // ================ //
-    /* todo get position of all todos while grabbing
-     * todo delete positions after releasing grab
-     * todo if y-position of currently held item is >= OR <= any item it takes its position, depending on movement up or down
-     * [#1 item]
-     * [#2 movingItem] <-- this will not take the position of #1 just because it is beyond the y-position of #1.
-     * [#3 item]           only if #2 would be moved to the y-position of #1 or smaller (because of upwards movement)
-     * [#4 item]           it would replace it. then #2 would become #1 and the other way around.
-     * todo to detect upwards or downwards movement: compare to first initialized y-position of grabbed element.
-     *  if the new position is larger than the older position it's downwards movement.
-     * todo if there was movement in any direction but on release the grabbed item is not enough to surpass any element
-     *  it should just return to its original position.
-     * todo after release while surpassing a todoItem they should in theory just need to switch places in the array
-     *  and the instance had to be rerendered
-     * todo dont forget localStorage
-     */
-    const positionOfTodos = (): Record<string, number | Element>[] => {
-        let positions: Record<string, number | Element>[] = [];
-
-        Array.from(todoDomElementList).reverse().forEach((todo, index) => {
-            positions.push({
-                index: index,
-                y: todo.getBoundingClientRect().y,
-                height: todo.getBoundingClientRect().height,
-                element: todo,
-            })
-        })
-
-        return positions
-    }
-
-    // ============ //
-    // GENERAL SORT //
-    // ============ //
-    /* todo register click event on up and down arrow buttons
-     * todo on click detect if it was up or down
-     * todo move item where a button has been clicked in the direction by reducing or increasing its index by 1
-     * todo rerender the instance
-     * todo dont forget localStorage
-     */
-
     const setInputState = (event: Event) => {
         const input = event?.target as HTMLInputElement;
         inputState = input.value;
     }
 
     const toggleTodoComplete = (event: Event) => {
-        console.log("clicked check")
         const element = event.currentTarget as HTMLElement;
         const id = element.dataset.id;
         const currentTodo = todoItems.find(item => `${item.id}` === id);
@@ -161,6 +118,10 @@ export const todo = () => {
         if (todoItems.length > 0) {
             const firstTodo = todoDomElementList[0];
             const lastTodo = todoDomElementList[todoDomElementList.length - 1];
+            todoDomElementList.forEach(todo => {
+                removeDisabledAttribute(todo, '[data-moveTodoInDirection="up"]')
+                removeDisabledAttribute(todo, '[data-moveTodoInDirection="down"]')
+            })
             setDisabledAttribute(firstTodo, '[data-moveTodoInDirection="up"]')
             setDisabledAttribute(lastTodo, '[data-moveTodoInDirection="down"]')
         }
@@ -170,6 +131,8 @@ export const todo = () => {
         event.preventDefault();
 
         setObjectInLocalStorage('todoItems', [])
+        setObjectInLocalStorage('currentMaxIndex', null)
+        currentMaxIndex = 0;
         todoItems = [];
         todoDomElementList.forEach(todo => {
             todo.remove();
@@ -177,10 +140,8 @@ export const todo = () => {
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
     }
 
-    // todo currently only one todo can be deleted before the site has to be refreshed
     const deleteSingleTodo = (event: Event) => {
         event.preventDefault();
-        console.log("delete click")
         const target = event.currentTarget as HTMLButtonElement;
         const id = target.dataset.id;
         const parent = Array.from(todoDomElementList).find(todo => todo.getAttribute('data-id') === id);
@@ -193,25 +154,26 @@ export const todo = () => {
             }
         }
 
-        // console.log("todoItems", todoItems)
-        // console.log("event.target", event.target)
-        //
-        reRenderInstance();
-
         parent?.remove();
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
         setObjectInLocalStorage('todoItems', todoItems);
+        if (todoItems.length === 0) {
+            setObjectInLocalStorage('currentMaxIndex', null)
+            currentMaxIndex = 0;
+        }
     }
 
     // each function should serve 1 purpose and be relatively generic. it should be usable at multiple places.
     // todo wrapperfunction for 2 new functions with single purpose
     const handleFormSubmit = (event: Event) => {
         event.preventDefault();
-        addTodo();
-        reRenderInstance();
+        addTodoItem();
+        createNewTodoDOMElement();
+        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+        setDisabledSortButtons();
     }
 
-    const addTodo = () => {
+    const addTodoItem = () => {
         if (addTodoTextInput.value.length === 0 || componentRoot === null) {
             return;
         }
@@ -230,21 +192,19 @@ export const todo = () => {
         addTodoTextInput.value = '';
     }
 
-    // todo only add eventlistener to elements that are new. not to old elements. no replacement!
-    const reRenderInstance = () => {
-        renderAllTodos(todoItems);
+    const createNewTodoDOMElement = () => {
+        const indexForNewItem = todoItems.length - 1
+        const newTodo = todoItems[indexForNewItem];
+        addTodoElementToDom({
+            id: newTodo.id,
+            title: newTodo.title,
+            completed: newTodo.completed,
+        });
 
-        todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
-        todoDoneCheckboxList = componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]');
-        deleteSingleTodoButtonList = componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]');
-        dragAndDropSortGrabberList = componentRoot.querySelectorAll('[data-todo="dragAndDropSortGrabber"]');
-
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-        removeBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
-        assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
-        removeBulkEventListeners(deleteSingleTodoButtonList, 'click', deleteSingleTodo)
-        assignBulkEventListeners(deleteSingleTodoButtonList, 'click', deleteSingleTodo)
-        setDisabledSortButtons();
+        setInteractionElements();
+        todoDoneCheckboxList[indexForNewItem].addEventListener('change', toggleTodoComplete)
+        deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', deleteSingleTodo)
+        dragAndDropSortGrabberList[indexForNewItem].addEventListener('mousedown', holdItemHandler)
     }
 
     // WIP
@@ -299,6 +259,49 @@ export const todo = () => {
             // console.log("allTodos", allTodos)
         }
     }
+
+    // ================ //
+    // DRAG N DROP SORT //
+    // ================ //
+    /* todo get position of all todos while grabbing
+     * todo delete positions after releasing grab
+     * todo if y-position of currently held item is >= OR <= any item it takes its position, depending on movement up or down
+     * [#1 item]
+     * [#2 movingItem] <-- this will not take the position of #1 just because it is beyond the y-position of #1.
+     * [#3 item]           only if #2 would be moved to the y-position of #1 or smaller (because of upwards movement)
+     * [#4 item]           it would replace it. then #2 would become #1 and the other way around.
+     * todo to detect upwards or downwards movement: compare to first initialized y-position of grabbed element.
+     *  if the new position is larger than the older position it's downwards movement.
+     * todo if there was movement in any direction but on release the grabbed item is not enough to surpass any element
+     *  it should just return to its original position.
+     * todo after release while surpassing a todoItem they should in theory just need to switch places in the array
+     *  and the instance had to be rerendered
+     * todo dont forget localStorage
+     */
+    const positionOfTodos = (): Record<string, number | Element>[] => {
+        let positions: Record<string, number | Element>[] = [];
+
+        Array.from(todoDomElementList).reverse().forEach((todo, index) => {
+            positions.push({
+                index: index,
+                y: todo.getBoundingClientRect().y,
+                height: todo.getBoundingClientRect().height,
+                element: todo,
+            })
+        })
+
+        return positions
+    }
+
+    // ============ //
+    // GENERAL SORT //
+    // ============ //
+    /* todo register click event on up and down arrow buttons
+     * todo on click detect if it was up or down
+     * todo move item where a button has been clicked in the direction by reducing or increasing its index by 1
+     * todo rerender the instance
+     * todo dont forget localStorage
+     */
 
     return { init };
 }
