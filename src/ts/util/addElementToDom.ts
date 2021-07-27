@@ -1,8 +1,6 @@
 import TodoItem from "../interfaces/TodoItem";
 
 export default function addTodoElementToDom(todoItem: TodoItem) {
-    // todo change todo__title to todo__title--edit when being edited
-
     const todoList = document.querySelector('.todo-list') as HTMLDivElement;
     const todoDomElement = `
         <div data-todo="todoItem" class="todo ${todoItem.completed ? 'todo--completed' : ''}" data-id="${todoItem.id}">

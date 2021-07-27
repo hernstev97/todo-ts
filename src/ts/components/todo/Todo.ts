@@ -1,6 +1,6 @@
 import TodoItem from "../../interfaces/TodoItem";
 import allItemsRemoveButtonVisibilityHandler from "../../util/allItemsRemoveButtonVisibilityHandler";
-import { assignBulkEventListeners, removeBulkEventListeners } from "../../util/eventListeners";
+import { assignBulkEventListeners } from "../../util/eventListeners";
 import setFontSizeForEachTodo from "../../util/setFontSizeForEachTodo";
 import { getDeviceOutput } from "../../util/getDeviceOutput";
 import { getObjectInLocalStorage, setObjectInLocalStorage } from "../../util/setObjectInLocalStorage";
@@ -14,25 +14,28 @@ export const todo = () => {
     const addTodoTextInput = componentRoot.querySelector('[data-todo="addTodoTextInput"]') as HTMLInputElement;
     const addTodoFormElement = componentRoot.querySelector('[data-todo="addTodoForm"]') as HTMLFormElement;
     const todoList = componentRoot.querySelector('[data-todo="todoList"]') as HTMLDivElement
-    let todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
-    let todoDoneCheckboxList = componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]');
-    let deleteSingleTodoButtonList = componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]');
-    let dragAndDropSortGrabberList = componentRoot.querySelectorAll('[data-todo="dragAndDropSortGrabber"]');
-    let moveTodoInDirectionButtonList = componentRoot.querySelectorAll('[data-moveTodoInDirection]');
-    let todoTitleList = componentRoot.querySelectorAll('[data-todo="todoTitle"]');
+    let todoDomElementList: NodeListOf<Element>;
+    let todoDoneCheckboxList: HTMLInputElement[];
+    let deleteSingleTodoButtonList: HTMLButtonElement[];
+    let dragAndDropSortGrabberList: HTMLDivElement[];
+    let moveTodoInDirectionButtonList: HTMLButtonElement[];
+    let todoTitleList: HTMLDivElement[];
+    // general
     let todoItems: TodoItem[] = [];
     let inputState: string = '';
+    let timeout: number;
+    let amountOfTodosIncludingDeleted: number = 0;
+    // edit
+    let currentTodoId: number;
+    let modifiedTodoItems: TodoItem[] = [];
+    let indexOfEditableTodoItem: number;
+    let selectedEditableTodoItem: TodoItem | undefined;
+    let currentlyEditedTitle: Element; // todo ?rename
+    // drag/drop
     let isCurrentlyHoldingItem: boolean;
     let heldGrabber: HTMLDivElement | null; // todo ?rename
     let currentlyMovableTodo: HTMLDivElement | null;
     let currentlyMovableTodoRect: DOMRect | null;
-    let timeout: number;
-    let currentMaxIndex: number = 0; // todo ?rename
-    let modifiedTodoItems: TodoItem[];
-    let currentId: number; // todo ?rename
-    let indexOfEditedTodo: number; // todo ?rename
-    let editThisTodo: TodoItem | undefined; // todo ?rename
-    let currentlyEditedTitle: Element; // todo ?rename
 
     const init = () => {
         buildTodosFromLocalStorage();
@@ -40,6 +43,7 @@ export const todo = () => {
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
         setDisabledSortButtons();
         bindEvents();
+        setFontSizeForEachTodo(todoDomElementList, getDeviceOutput());
         console.log("positionOfTodos", positionOfTodos())
     }
 
@@ -76,23 +80,23 @@ export const todo = () => {
 
     const buildTodosFromLocalStorage = () => {
         todoItems = getObjectInLocalStorage('todoItems')
-        currentMaxIndex = getObjectInLocalStorage('currentMaxIndex')
+        amountOfTodosIncludingDeleted = getObjectInLocalStorage('amountOfTodosIncludingDeleted')
         renderAllTodos(todoItems);
     }
 
     // todo rename
     const setInteractionElements = () => {
         todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
-        todoDoneCheckboxList = componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]');
-        deleteSingleTodoButtonList = componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]');
-        dragAndDropSortGrabberList = componentRoot.querySelectorAll('[data-todo="dragAndDropSortGrabber"]');
-        moveTodoInDirectionButtonList = componentRoot.querySelectorAll('[data-moveTodoInDirection]');
-        todoTitleList = componentRoot.querySelectorAll('[data-todo="todoTitle"]');
+        todoDoneCheckboxList = Array.from(componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]')) as HTMLInputElement[];
+        deleteSingleTodoButtonList = Array.from(componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]')) as HTMLButtonElement[];
+        dragAndDropSortGrabberList = Array.from(componentRoot.querySelectorAll('[data-todo="dragAndDropSortGrabber"]')) as  HTMLDivElement[];
+        moveTodoInDirectionButtonList = Array.from(componentRoot.querySelectorAll('[data-moveTodoInDirection]')) as HTMLButtonElement[];
+        todoTitleList = Array.from(componentRoot.querySelectorAll('[data-todo="todoTitle"]')) as HTMLDivElement[];
     }
 
     const renderAllTodos = (todos: TodoItem[]) => {
         todoList.innerHTML = '';
-        todos.forEach((item, index) => {
+        todos.forEach(item => {
             addTodoElementToDom({
                 id: item.id,
                 title: item.title,
@@ -103,11 +107,9 @@ export const todo = () => {
 
     const setInputState = (event: Event) => {
         const input = event?.target as HTMLInputElement;
-        inputState = input.value;
+        inputState = input.value ?? '';
     }
 
-    // todo make sure not to use optional chaining when setting variables to dom elements.
-    //  make sure for the whole project
     const toggleTodoComplete = (event: Event) => {
         const element = event.currentTarget as HTMLElement;
         const id = element.dataset.id;
@@ -116,13 +118,14 @@ export const todo = () => {
 
         if (currentTodo === undefined) return;
 
-        currentTodo.completed = !currentTodo.completed;
+        if (parent) {
+            currentTodo.completed = !currentTodo.completed;
 
-        if (currentTodo.completed)
-            parent?.classList.add('todo--completed');
-        else
-            parent?.classList.remove('todo--completed');
-
+            if (currentTodo.completed)
+                parent.classList.add('todo--completed');
+            else
+                parent.classList.remove('todo--completed');
+        }
 
         setObjectInLocalStorage('todoItems', todoItems);
     }
@@ -151,8 +154,8 @@ export const todo = () => {
         event.preventDefault();
 
         setObjectInLocalStorage('todoItems', [])
-        setObjectInLocalStorage('currentMaxIndex', null)
-        currentMaxIndex = 0;
+        setObjectInLocalStorage('amountOfTodosIncludingDeleted', null)
+        amountOfTodosIncludingDeleted = 0;
         todoItems = [];
         todoDomElementList.forEach(todo => {
             todo.remove();
@@ -179,14 +182,15 @@ export const todo = () => {
             }
         }
 
-        parent?.remove();
+        if (parent)
+            parent.remove();
 
         setObjectInLocalStorage('todoItems', todoItems);
         todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
 
         if (todoItems.length === 0) {
-            setObjectInLocalStorage('currentMaxIndex', null)
-            currentMaxIndex = 0;
+            setObjectInLocalStorage('amountOfTodosIncludingDeleted', null)
+            amountOfTodosIncludingDeleted = 0;
         }
     }
 
@@ -206,17 +210,17 @@ export const todo = () => {
             return;
         }
 
-        currentMaxIndex += 1;
+        amountOfTodosIncludingDeleted += 1;
 
         const todoItem: TodoItem = {
-            id: currentMaxIndex,
+            id: amountOfTodosIncludingDeleted,
             title: inputState,
             completed: false,
         }
 
         todoItems.push(todoItem);
         setObjectInLocalStorage('todoItems', todoItems);
-        setObjectInLocalStorage('currentMaxIndex', currentMaxIndex);
+        setObjectInLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted);
         addTodoTextInput.value = '';
         inputState = '';
     }
@@ -234,8 +238,11 @@ export const todo = () => {
         todoDoneCheckboxList[indexForNewItem].addEventListener('change', toggleTodoComplete)
         deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', handleDeleteTodo)
         dragAndDropSortGrabberList[indexForNewItem].addEventListener('mousedown', holdItemHandler)
-        moveTodoInDirectionButtonList[indexForNewItem].addEventListener('click', handleMoveTodo);
         todoTitleList[indexForNewItem].addEventListener('dblclick', handleEditTodoLabel);
+        moveTodoInDirectionButtonList.forEach(button => {
+            if (button.getAttribute('data-id') === `${newTodo.id}`)
+                button.addEventListener('click', handleMoveTodo);
+        })
     }
 
     const handleEditTodoLabel = (event: Event) => {
@@ -246,11 +253,11 @@ export const todo = () => {
         currentlyEditedTitle.classList.add('todo__title--edit');
 
         if (editTodoInput && parent) {
-            currentId = Number(parent.getAttribute('data-id'));
-            editThisTodo = todoItems.find(todo => todo.id === currentId);
+            currentTodoId = Number(parent.getAttribute('data-id'));
+            selectedEditableTodoItem = todoItems.find(todo => todo.id === currentTodoId);
 
-            if (editThisTodo) {
-                indexOfEditedTodo = todoItems.indexOf(editThisTodo);
+            if (selectedEditableTodoItem) {
+                indexOfEditableTodoItem = todoItems.indexOf(selectedEditableTodoItem);
                 editTodoInput.addEventListener('input', setInputState);
                 editTodoInput.addEventListener('keydown', handleEditSubmit);
                 editTodoInput.addEventListener('keyup', (event) => {
@@ -268,18 +275,18 @@ export const todo = () => {
         const todoLabel = currentlyEditedTitle.querySelector('p');
         const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;
         const newTitle = inputState.length > 0 ? inputState : editTodoInput.value;
-        if (key === "Enter" && editThisTodo && todoLabel) {
+        if (key === "Enter" && selectedEditableTodoItem && todoLabel) {
 
-            modifiedTodoItems[indexOfEditedTodo] = {
-                id: currentId,
+            modifiedTodoItems[indexOfEditableTodoItem] = {
+                id: currentTodoId,
                 title: newTitle,
-                completed: editThisTodo.completed
+                completed: selectedEditableTodoItem.completed
             };
 
             todoLabel.textContent = newTitle;
             todoItems = modifiedTodoItems;
             currentlyEditedTitle.classList.remove('todo__title--edit');
-            setObjectInLocalStorage('todoItems', todoItems);
+            setObjectInLocalStorage('todoItems', modifiedTodoItems);
         }
     }
 
@@ -323,7 +330,7 @@ export const todo = () => {
         if (heldGrabber && event.type === 'mouseup') {
             currentlyMovableTodo = heldGrabber.parentElement as HTMLDivElement;
             window.removeEventListener('mousemove', determineNewPositionOfTodoAfterMoving);
-            heldGrabber.parentElement?.classList.remove('moving');
+            currentlyMovableTodo.classList.remove('moving');
             heldGrabber = null;
             isCurrentlyHoldingItem = false;
         }
@@ -371,9 +378,11 @@ export const todo = () => {
     }
 
     const handleMoveTodo = (event: Event) => {
+        console.log("move")
         moveTodo(event);
         renderAllTodos(todoItems);
         setInteractionElements();
+        setFontSizeForEachTodo(todoDomElementList, getDeviceOutput());
 
         // here all listeners for elements inside a todoElement have to be set again
         // because within the renderAllTodos function the innerHTML of the todolist ist emptied
