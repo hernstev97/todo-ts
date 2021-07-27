@@ -7,6 +7,17 @@
     .todo__title {
         flex-grow: 1;
         max-width: calc(100% - 4rem);
+        position: relative;
+
+        &--edit {
+            .todo__label {
+                display: none;
+            }
+
+            .todo__edit {
+                display: block;
+            }
+        }
     }
 }
 

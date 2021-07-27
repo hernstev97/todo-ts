@@ -8,8 +8,9 @@ export default function addTodoElementToDom(todoItem: TodoItem) {
         <div data-todo="todoItem" class="todo ${todoItem.completed ? 'todo--completed' : ''}" data-id="${todoItem.id}">
             <div class="todo__flex-container">
                 <input data-todo="todoCompletedCheckbox" type="checkbox" data-id="${todoItem.id}" ${todoItem.completed ? 'checked' : ''}>
-                <div class="todo__title">
+                <div class="todo__title" data-todo="todoTitle">
                     <p class="todo__label">${todoItem.title}</p>
+                    <input data-todo="editTodoInput" class="todo__edit" type="text" value="${todoItem.title}" />
                 </div>
                 <div class="todo__move-delete-wrapper">
                     <button class="todo__move todo__move--up" data-id="${todoItem.id}" data-moveTodoInDirection="up">
