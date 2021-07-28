@@ -3,7 +3,7 @@
 A simple todo app written in typescript that works within the local storage.
 
 ## Features
-1. :x: edit
+1. :white_check_mark: edit
 2. :white_check_mark: add
 3. :white_check_mark: delete
 4. :white_check_mark: done-state
