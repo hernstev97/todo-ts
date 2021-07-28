@@ -79,7 +79,8 @@ export const todo = () => {
     }
 
     const buildTodosFromLocalStorage = () => {
-        todoItems = getObjectInLocalStorage('todoItems')
+        const todoItemsFromStorage = getObjectInLocalStorage('todoItems');
+        todoItems = todoItemsFromStorage === undefined ? [] : todoItemsFromStorage;
         amountOfTodosIncludingDeleted = getObjectInLocalStorage('amountOfTodosIncludingDeleted')
         renderAllTodos(todoItems);
     }
@@ -229,7 +230,7 @@ export const todo = () => {
         const indexForNewItem = todoItems.length - 1
         const newTodo = todoItems[indexForNewItem];
         addTodoElementToDom({
-            id: newTodo.id,
+            id: amountOfTodosIncludingDeleted,
             title: newTodo.title,
             completed: newTodo.completed,
         });
@@ -247,10 +248,10 @@ export const todo = () => {
 
     const handleEditTodoLabel = (event: Event) => {
         currentlyEditedTitle = event.currentTarget as Element;
+        currentlyEditedTitle.classList.add('todo__title--edit');
         modifiedTodoItems = Array.from(todoItems)
         const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;
         const parent = currentlyEditedTitle?.parentElement?.parentElement;
-        currentlyEditedTitle.classList.add('todo__title--edit');
 
         if (editTodoInput && parent) {
             currentTodoId = Number(parent.getAttribute('data-id'));
@@ -258,16 +259,24 @@ export const todo = () => {
 
             if (selectedEditableTodoItem) {
                 indexOfEditableTodoItem = todoItems.indexOf(selectedEditableTodoItem);
+                editTodoInput.focus();
+                editTodoInput.setSelectionRange(editTodoInput.value.length, editTodoInput.value.length);
                 editTodoInput.addEventListener('input', setInputState);
                 editTodoInput.addEventListener('keydown', handleEditSubmit);
                 editTodoInput.addEventListener('keyup', (event) => {
-                    if (event.key === "Enter") {
-                        editTodoInput.removeEventListener('keydown', handleEditSubmit);
-                        editTodoInput.removeEventListener('input', setInputState);
+                    if (event.key === "Escape" || event.key === "Enter") {
+                        removeEditInput(editTodoInput);
                     }
                 });
+                editTodoInput.addEventListener('blur', () => { removeEditInput(editTodoInput) });
             }
         }
+    }
+
+    const removeEditInput = (input: HTMLInputElement) => {
+        currentlyEditedTitle.classList.remove('todo__title--edit');
+        input.removeEventListener('keydown', handleEditSubmit);
+        input.removeEventListener('input', setInputState);
     }
 
     const handleEditSubmit = (event: Event | KeyboardEvent) => {
@@ -276,7 +285,6 @@ export const todo = () => {
         const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;
         const newTitle = inputState.length > 0 ? inputState : editTodoInput.value;
         if (key === "Enter" && selectedEditableTodoItem && todoLabel) {
-
             modifiedTodoItems[indexOfEditableTodoItem] = {
                 id: currentTodoId,
                 title: newTitle,
@@ -285,7 +293,6 @@ export const todo = () => {
 
             todoLabel.textContent = newTitle;
             todoItems = modifiedTodoItems;
-            currentlyEditedTitle.classList.remove('todo__title--edit');
             setObjectInLocalStorage('todoItems', modifiedTodoItems);
         }
     }
@@ -391,6 +398,7 @@ export const todo = () => {
         assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo);
         assignBulkEventListeners(dragAndDropSortGrabberList, 'mousedown', holdItemHandler);
         assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo);
+        assignBulkEventListeners(todoTitleList, 'dblclick', handleEditTodoLabel);
 
         setDisabledSortButtons();
         setObjectInLocalStorage('todoItems', todoItems);
