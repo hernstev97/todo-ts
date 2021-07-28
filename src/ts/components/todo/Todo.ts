@@ -7,6 +7,7 @@ import { getObjectInLocalStorage, setObjectInLocalStorage } from "../../util/set
 import addTodoElementToDom from "../../util/addElementToDom";
 import { setDisabledAttribute, removeDisabledAttribute } from "../../util/setDisabledAttribute";
 import { swapArrayElementPositions } from "../../util/swapArrayElementPositions";
+import {TodoPosition} from "../../interfaces/TodoPosition";
 
 export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
@@ -33,9 +34,12 @@ export const todo = () => {
     let currentlyEditedTitle: Element; // todo ?rename
     // drag/drop
     let isCurrentlyHoldingItem: boolean;
-    let heldGrabber: HTMLDivElement | null; // todo ?rename
-    let currentlyMovableTodo: HTMLDivElement | null;
+    let currentlyMovableTodo: HTMLElement | null | undefined;
     let currentlyMovableTodoRect: DOMRect | null;
+    let positionOfTodosWhenGrabbed: TodoPosition[];
+    let initialGrabbedTodoPosition: TodoPosition | undefined;
+    let hasSurpassedOtherPositions: boolean;
+    let surpassedTodo: TodoPosition | undefined;
 
     const init = () => {
         buildTodosFromLocalStorage();
@@ -44,7 +48,6 @@ export const todo = () => {
         setDisabledSortButtons();
         bindEvents();
         setFontSizeForEachTodo(todoDomElementList, getDeviceOutput());
-        console.log("positionOfTodos", positionOfTodos())
     }
 
     const bindEvents = () => {
@@ -300,14 +303,20 @@ export const todo = () => {
     // ================ //
     // DRAG N DROP SORT //
     // ================ //
-    /* todo get position of all todos while grabbing
-     * todo delete positions after releasing grab
-     * todo if y-position of currently held item is >= OR <= any item it takes its position, depending on movement up or down
+    /* get position of all todos while grabbing
+     * delete positions after releasing grab
+     * todo set newPosition via the calculated position minus its original position as it was grabbed
+     * if y-position of currently held item is >= OR <= any item it takes its position, depending on movement up or down
+     * get all todoElements
+     *      split the array by the currently held todoElement
+     * get all the ids of the elements preceeding the grabbed element in one array
+     *  and the elements following in another element
+     *  then compare preceeding elements on upwards movement and following elements on downwards movement
      * [#1 item]
      * [#2 movingItem] <-- this will not take the position of #1 just because it is beyond the y-position of #1.
      * [#3 item]           only if #2 would be moved to the y-position of #1 or smaller (because of upwards movement)
      * [#4 item]           it would replace it. then #2 would become #1 and the other way around.
-     * todo to detect upwards or downwards movement: compare to first initialized y-position of grabbed element.
+     * to detect upwards or downwards movement: compare to first initialized y-position of grabbed element.
      *  if the new position is larger than the older position it's downwards movement.
      * todo if there was movement in any direction but on release the grabbed item is not enough to surpass any element
      *  it should just return to its original position.
@@ -318,14 +327,34 @@ export const todo = () => {
 
     // WIP
     const holdItemHandler = (event: Event | MouseEvent) => {
-        console.log("hold")
         if (event.type === 'mousedown') {
+            console.log("hold")
             isCurrentlyHoldingItem = true;
-            heldGrabber = event.currentTarget as HTMLDivElement;
-            if (heldGrabber){
-                currentlyMovableTodo = heldGrabber.parentElement as HTMLDivElement;
+            currentlyMovableTodo = (event.currentTarget as HTMLDivElement)?.parentElement;
+            positionOfTodosWhenGrabbed = positionOfTodos();
+
+            if (currentlyMovableTodo){
+                console.log("todoDomElementList", todoDomElementList)
+                console.log("currentlyMovableTodo", currentlyMovableTodo)
                 currentlyMovableTodoRect = currentlyMovableTodo.getBoundingClientRect();
-                console.log("currentlyMovableItemRect", currentlyMovableTodoRect);
+                initialGrabbedTodoPosition = positionOfTodosWhenGrabbed.find(todo => {
+                    return todo.id === Number(currentlyMovableTodo?.getAttribute('data-id'));
+                });
+
+                console.log("initialGrabbedTodoPosition", initialGrabbedTodoPosition)
+                if (initialGrabbedTodoPosition) {
+                    currentlyMovableTodo.classList.add('moving');
+                    currentlyMovableTodo.style.width = `${currentlyMovableTodoRect.width}px`;
+                    currentlyMovableTodo.style.top = `${initialGrabbedTodoPosition.y - 16}px`;
+                    currentlyMovableTodo.insertAdjacentHTML(
+                        'beforebegin',
+                        createPlaceholderForGrabbedElement(
+                            initialGrabbedTodoPosition.y,
+                            initialGrabbedTodoPosition.width,
+                            initialGrabbedTodoPosition.height
+                        )
+                    );
+                }
             }
             window.addEventListener('mousemove', determineNewPositionOfTodoAfterMoving)
         }
@@ -334,46 +363,80 @@ export const todo = () => {
     // WIP
     const releaseItemHandler = (event: Event | MouseEvent) => {
         console.log("release")
-        if (heldGrabber && event.type === 'mouseup') {
-            currentlyMovableTodo = heldGrabber.parentElement as HTMLDivElement;
+        if (currentlyMovableTodo && event.type === 'mouseup') {
+            if (hasSurpassedOtherPositions) {
+                console.log("make position switch")
+                console.log("surpassedTodo", surpassedTodo);
+            } else {
+                currentlyMovableTodo.style.width = '';
+                currentlyMovableTodo.style.top = '';
+            }
             window.removeEventListener('mousemove', determineNewPositionOfTodoAfterMoving);
+            const placeholder = componentRoot.querySelector('[data-todo="placeholder"]');
             currentlyMovableTodo.classList.remove('moving');
-            heldGrabber = null;
+            placeholder?.remove();
             isCurrentlyHoldingItem = false;
+            positionOfTodosWhenGrabbed = [];
         }
     }
 
     // WIP
     const determineNewPositionOfTodoAfterMoving = (event: Event | MouseEvent) => {
-        if ("y" in event && heldGrabber && currentlyMovableTodo && currentlyMovableTodoRect) {
-            const itemY = currentlyMovableTodoRect.y;
+        if ("y" in event && currentlyMovableTodo && currentlyMovableTodoRect) {
             const itemHeight = currentlyMovableTodoRect.height;
             const y = event.y;
-            const pos = y - itemHeight + (itemHeight / 2) - itemY;
+            const pos = y - (itemHeight / 2) - 16;
 
-            // currentlyMovableItem.style.top = `${pos}px`;
-            currentlyMovableTodo.classList.add('moving');
-            currentlyMovableTodo.style.width = `${currentlyMovableTodoRect.width}px`;
-            currentlyMovableTodo.style.top = `${y - (itemHeight / 2) - 16}px`;
-            console.log(" ")
-            console.log("top: ", `${y - (itemHeight / 2) - 16}px`)
-            console.log(`${y} - ${itemHeight} + ${(itemHeight / 2)} - ${itemY} =`, pos)
-            console.log(" ")
+            if (initialGrabbedTodoPosition) {
+                const initialGrabbedTodoY = initialGrabbedTodoPosition.y
+                const testArr = Array.from(todoDomElementList);
+                const testIndexOf = testArr.indexOf(currentlyMovableTodo)
+                const pre = testArr.slice(0, testIndexOf).map(p => Number(p.getAttribute('data-id')))
+                const post = testArr.slice(testIndexOf+1).map(p => Number(p.getAttribute('data-id')))
+                let otherTodoYPositions: number[];
 
-            // const initialPositionWhenGrabbed = 0;
-            // const positionOfCursor = 0;
-            // const halfHeightOfElement = 0;
+                if (initialGrabbedTodoY > (y - (currentlyMovableTodoRect.height / 2))) {
+                    const filteredPre = positionOfTodosWhenGrabbed.filter(todo => todo.id === pre.find(p => p === todo.id));
+                    otherTodoYPositions = filteredPre.filter(todo => {
+                        if (todo.id !== Number(currentlyMovableTodo?.getAttribute('data-id'))) return todo;
+                    }).map(position => position.y)
+                    hasSurpassedOtherPositions = otherTodoYPositions.some(position => position > (pos + 16));
 
-            // console.log("positionOfTodos", positionOfTodos().map(pos => pos.element))
+                } else {
+                    const filteredPost = positionOfTodosWhenGrabbed.filter(todo => todo.id === post.find(p => p === todo.id));
+                    otherTodoYPositions = filteredPost.filter(todo => {
+                        if (todo.id !== Number(currentlyMovableTodo?.getAttribute('data-id'))) return todo;
+                    }).map(position => position.y)
+                    hasSurpassedOtherPositions = otherTodoYPositions.some(position => position < (pos + 16))
+                }
+
+                if (hasSurpassedOtherPositions) {
+                    let closest = otherTodoYPositions.reduce(function(prev, curr) {
+                        return (Math.abs(curr - pos) < Math.abs(prev - pos) ? curr : prev);
+                    });
+                    console.log("closest", closest)
+                    console.log("otherTodoYPositions", otherTodoYPositions)
+                    surpassedTodo = positionOfTodosWhenGrabbed.find(todo => todo.y === closest)
+                    console.log("surpassedTodo", surpassedTodo)
+                }
+
+                currentlyMovableTodo.style.width = `${currentlyMovableTodoRect.width}px`;
+                currentlyMovableTodo.style.top = `${pos}px`;
+            }
         }
     }
 
-    const positionOfTodos = (): Record<string, number | Element>[] => {
-        let positions: Record<string, number | Element>[] = [];
+    const createPlaceholderForGrabbedElement = (top: number, width: number, height: number) => {
+        return `<div data-todo="placeholder" style="position: relative; top: ${top}px; width: ${width}px; height: ${height}px; margin-top: 1rem" />`;
+    }
+
+    const positionOfTodos = (): TodoPosition[] => {
+        let positions: TodoPosition[] = [];
 
         todoDomElementList.forEach((todo, index) => {
             positions.push({
                 index: index,
+                id: Number(todo.getAttribute('data-id')),
                 y: todo.getBoundingClientRect().y,
                 height: todo.getBoundingClientRect().height,
                 width: todo.getBoundingClientRect().width,

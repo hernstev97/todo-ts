@@ -19,6 +19,7 @@
     margin-top: 1rem;
     border-radius: 0.3rem;
     position: relative;
+    transition: box-shadow .2s ease;
 
     &__input {
         display: flex;
@@ -33,7 +34,7 @@
     }
 
     &.moving {
-        outline: 5px solid red;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         cursor: grabbing;
         z-index: 100;
         position: absolute;
