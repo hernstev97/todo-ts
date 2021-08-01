@@ -40,6 +40,11 @@ export const todo = () => {
     let initialGrabbedTodoPosition: TodoPosition | undefined;
     let hasSurpassedOtherPositions: boolean;
     let surpassedTodo: TodoPosition | undefined;
+    let yPositionsOfTodosInAttemptedDirection: number[];
+    let placeholder: Node | null; // todo ?rename
+    let surpassed: Element | undefined; // todo ?rename
+    let removed: Node | null; // todo ?rename
+    let indexOfSurpassedTodo: number;
 
     const init = () => {
         buildTodosFromLocalStorage();
@@ -58,12 +63,14 @@ export const todo = () => {
         removeAllItemsButton.addEventListener('click', handleDeleteAllTodos)
 
         window.addEventListener( 'mouseup', releaseItemHandler)
+        window.addEventListener( 'touchend', releaseItemHandler)
 
         assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
 
         assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo)
 
         assignBulkEventListeners(dragAndDropSortGrabberList, 'mousedown', holdItemHandler)
+        assignBulkEventListeners(dragAndDropSortGrabberList, 'touchstart', holdItemHandler)
 
         assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo)
 
@@ -242,6 +249,7 @@ export const todo = () => {
         todoDoneCheckboxList[indexForNewItem].addEventListener('change', toggleTodoComplete)
         deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', handleDeleteTodo)
         dragAndDropSortGrabberList[indexForNewItem].addEventListener('mousedown', holdItemHandler)
+        dragAndDropSortGrabberList[indexForNewItem].addEventListener('touchstart', holdItemHandler)
         todoTitleList[indexForNewItem].addEventListener('dblclick', handleEditTodoLabel);
         moveTodoInDirectionButtonList.forEach(button => {
             if (button.getAttribute('data-id') === `${newTodo.id}`)
@@ -326,9 +334,9 @@ export const todo = () => {
      */
 
     // WIP
-    const holdItemHandler = (event: Event | MouseEvent) => {
-        if (event.type === 'mousedown') {
-            console.log("hold")
+    const holdItemHandler = (event: Event | MouseEvent | TouchEvent) => {
+        if (event.type === 'mousedown' || event.type === 'touchstart') {
+            const scrollY = window.scrollY;
             isCurrentlyHoldingItem = true;
             currentlyMovableTodo = (event.currentTarget as HTMLDivElement)?.parentElement;
             positionOfTodosWhenGrabbed = positionOfTodos();
@@ -361,63 +369,126 @@ export const todo = () => {
     }
 
     // WIP
-    const releaseItemHandler = (event: Event | MouseEvent) => {
-        console.log("release")
-        if (currentlyMovableTodo && event.type === 'mouseup') {
+    const releaseItemHandler = (event: Event | MouseEvent | TouchEvent) => {
+        if (currentlyMovableTodo && (event.type === 'mouseup' || event.type === 'touchend')) {
             if (hasSurpassedOtherPositions) {
-                console.log("make position switch")
-                console.log("surpassedTodo", surpassedTodo);
-            } else {
-                currentlyMovableTodo.style.width = '';
-                currentlyMovableTodo.style.top = '';
+                if (surpassedTodo) {
+                    // todo this can be a function
+                    surpassed = todoElementNodeList[surpassedTodo.index]
+                    indexOfSurpassedTodo = Array.from(todoElementNodeList).indexOf(surpassed);
+                    removed = todoList.removeChild(currentlyMovableTodo);
+                    // const index = Array.from(todoElementNodeList).indexOf(currentlyMovableTodo)
+                    // todo also needs a insertbefore in some cases
+
+                    // todo in the ui i move the element up or down. however in the array two elements switch position
+                    /* TODO Split the array at the index of the new position
+                    *   remove the moved todoItem from the array
+                    *   add it to the end of the first array.
+                    *   1. [t, t, t, mt, t]
+                    *   2. [t, t] new position [t, mt, t]
+                    *   3. [t, t] new position [t, t]
+                    *   4. [t, t, mt] [t, t]
+                    *   5. [t, t, mt, t, t]
+                    * */
+                    let moveThis = Array.from(todoItems).splice((initialGrabbedTodoPosition as TodoPosition).index, 1);
+                    const back = Array.from(todoItems);
+                    const front = back.splice(0, indexOfSurpassedTodo);
+
+                    const useFirstArray = front.some(todoItem => todoItem.id === (initialGrabbedTodoPosition as TodoPosition).id)
+
+                    console.log("indexOfSurpassedTodo", indexOfSurpassedTodo)
+                    console.log("useFirstArray", useFirstArray)
+                    console.log("moveThis", moveThis)
+                    console.log("back", back)
+                    console.log("front", front)
+                    if (indexOfSurpassedTodo === 0)
+                        todoItems = [...moveThis, ...back]
+                    if (indexOfSurpassedTodo === todoItems.length - 1)
+                        todoItems = [...front, ...moveThis]
+                    else {
+                        useFirstArray ? front.pop() : back.shift();
+                        todoItems = [...front, ...moveThis, ...back]
+                    }
+
+                    console.log("todoItems", todoItems)
+
+
+                    if (indexOfSurpassedTodo === 0) todoList.insertBefore(removed, surpassed);
+                    else insertAfter(removed, surpassed)
+
+                    // todoItems = swapArrayElementPositions(todoItems, surpassedTodo.index, index);
+                    setObjectInLocalStorage('todoItems', todoItems);
+                }
+                // todo test if rerendering has to be done. if so: try new method
             }
+            placeholder = componentRoot.querySelector('[data-todo="placeholder"]') as Node;
+            (todoList as Node).removeChild(placeholder);
+            currentlyMovableTodo.style.width = '';
+            currentlyMovableTodo.style.top = '';
             window.removeEventListener('mousemove', determineNewPositionOfTodoAfterMoving);
-            const placeholder = componentRoot.querySelector('[data-todo="placeholder"]');
+            window.removeEventListener('touchmove', determineNewPositionOfTodoAfterMoving);
             currentlyMovableTodo.classList.remove('moving');
-            placeholder?.remove();
+
             isCurrentlyHoldingItem = false;
             positionOfTodosWhenGrabbed = [];
         }
     }
 
-    // WIP
-    const determineNewPositionOfTodoAfterMoving = (event: Event | MouseEvent) => {
+    // todo rename
+    const func = (movesUp: boolean, idArray: number[], position: number) => { // todo rename position
+        const todosBeforeOrAfterGrabbedElement = positionOfTodosWhenGrabbed.filter(todo => todo.id === idArray.find(p => p === todo.id));
+        const todosInAttemptedDirection = todosBeforeOrAfterGrabbedElement.filter(todo => {
+            if (todo.id !== Number(currentlyMovableTodo?.getAttribute('data-id')))
+                return todo;
+        });
+        yPositionsOfTodosInAttemptedDirection = todosInAttemptedDirection.map(todo => todo.y);
+
+        hasSurpassedOtherPositions = yPositionsOfTodosInAttemptedDirection.some((yPosition, index) => {
+            if (movesUp)
+                return (yPosition + (todosInAttemptedDirection[index].height) - 16) > position
+
+            return (yPosition - 16) < position
+        });
+    }
+
+    // todo refactor / rename variables / create functions where possible
+    const determineNewPositionOfTodoAfterMoving = (event: Event | MouseEvent | TouchEvent) => {
         if ("y" in event && currentlyMovableTodo && currentlyMovableTodoRect) {
             const itemHeight = currentlyMovableTodoRect.height;
-            const y = event.y;
-            const pos = y - (itemHeight / 2) - 16;
+            const cursorYPosition = event.y;
+            const pos = cursorYPosition - (itemHeight / 2) + window.scrollY; // todo rename
 
             if (initialGrabbedTodoPosition) {
                 const initialGrabbedTodoY = initialGrabbedTodoPosition.y
-                const testArr = Array.from(todoDomElementList);
-                const testIndexOf = testArr.indexOf(currentlyMovableTodo)
-                const pre = testArr.slice(0, testIndexOf).map(p => Number(p.getAttribute('data-id')))
-                const post = testArr.slice(testIndexOf+1).map(p => Number(p.getAttribute('data-id')))
-                let otherTodoYPositions: number[];
+                const todoElements = Array.from(todoElementNodeList);
+                const indexOfMovingTodoWithinAllTodos = todoElements.indexOf(currentlyMovableTodo) // todo rename
+                const idsBeforeMovingTodo = todoElements.slice(0, indexOfMovingTodoWithinAllTodos).map(p => Number(p.getAttribute('data-id'))) // todo rename
+                const idsAfterMovingTodo = todoElements.slice(indexOfMovingTodoWithinAllTodos+1).map(p => Number(p.getAttribute('data-id'))) // todo rename
+                const isMovingUp = initialGrabbedTodoY > (cursorYPosition - (currentlyMovableTodoRect.height / 2));
 
-                if (initialGrabbedTodoY > (y - (currentlyMovableTodoRect.height / 2))) {
-                    const filteredPre = positionOfTodosWhenGrabbed.filter(todo => todo.id === pre.find(p => p === todo.id));
-                    otherTodoYPositions = filteredPre.filter(todo => {
-                        if (todo.id !== Number(currentlyMovableTodo?.getAttribute('data-id'))) return todo;
-                    }).map(position => position.y)
-                    hasSurpassedOtherPositions = otherTodoYPositions.some(position => position > (pos + 16));
-
-                } else {
-                    const filteredPost = positionOfTodosWhenGrabbed.filter(todo => todo.id === post.find(p => p === todo.id));
-                    otherTodoYPositions = filteredPost.filter(todo => {
-                        if (todo.id !== Number(currentlyMovableTodo?.getAttribute('data-id'))) return todo;
-                    }).map(position => position.y)
-                    hasSurpassedOtherPositions = otherTodoYPositions.some(position => position < (pos + 16))
-                }
+                if (isMovingUp)
+                    func(isMovingUp, idsBeforeMovingTodo, pos);
+                else
+                    func(isMovingUp, idsAfterMovingTodo, pos);
 
                 if (hasSurpassedOtherPositions) {
-                    let closest = otherTodoYPositions.reduce(function(prev, curr) {
+                    let closest = yPositionsOfTodosInAttemptedDirection.reduce(function(prev, curr) {
                         return (Math.abs(curr - pos) < Math.abs(prev - pos) ? curr : prev);
                     });
-                    console.log("closest", closest)
-                    console.log("otherTodoYPositions", otherTodoYPositions)
                     surpassedTodo = positionOfTodosWhenGrabbed.find(todo => todo.y === closest)
-                    console.log("surpassedTodo", surpassedTodo)
+
+                    if (surpassedTodo) {
+                        // todo this can be a function
+                        placeholder = componentRoot.querySelector('[data-todo="placeholder"]') as Node;
+                        surpassed = todoElementNodeList[surpassedTodo.index]
+                        removed = (todoList as Node).removeChild(placeholder);
+                        indexOfSurpassedTodo = Array.from(todoElementNodeList).indexOf(surpassed);
+                        if (isMovingUp) todoList.insertBefore(removed, surpassed);
+                        else insertAfter(removed, surpassed)
+                    }
+                } else if (placeholder && surpassed && removed) {
+                    if (indexOfSurpassedTodo === 0) todoList.insertBefore(surpassed, removed);
+                    else insertAfter(surpassed, removed)
                 }
 
                 currentlyMovableTodo.style.width = `${currentlyMovableTodoRect.width}px`;
@@ -427,7 +498,13 @@ export const todo = () => {
     }
 
     const createPlaceholderForGrabbedElement = (top: number, width: number, height: number) => {
-        return `<div data-todo="placeholder" style="position: relative; top: ${top}px; width: ${width}px; height: ${height}px; margin-top: 1rem" />`;
+        return `<div 
+                    data-todo="placeholder"
+                    style="position: relative;
+                    top: ${top}px;
+                    width: ${width}px;
+                    height: ${height}px;" 
+                />`;
     }
 
     const positionOfTodos = (): TodoPosition[] => {
@@ -460,6 +537,7 @@ export const todo = () => {
         assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
         assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo);
         assignBulkEventListeners(dragAndDropSortGrabberList, 'mousedown', holdItemHandler);
+        assignBulkEventListeners(dragAndDropSortGrabberList, 'touchstart', holdItemHandler);
         assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo);
         assignBulkEventListeners(todoTitleList, 'dblclick', handleEditTodoLabel);
 
