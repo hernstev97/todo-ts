@@ -45,7 +45,7 @@ export const todo = () => {
 
         addTodoFormElement.addEventListener('submit', handleFormSubmit)
 
-        removeAllItemsButton.addEventListener('click', handleDeleteAllTodos)
+        removeAllItemsButton.addEventListener('click', handleDeleteAllButtonClick)
 
         assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
 
@@ -119,8 +119,6 @@ export const todo = () => {
         setObjectInLocalStorage('todoItems', todoItems);
     }
 
-    // todo make sure every function is as generic and reusable as possible
-    //  its use should be obvious
     const setDisabledSortButtons = () => {
         if (todoItems.length > 0) {
             const firstTodo = todoElementNodeList[0];
@@ -134,7 +132,7 @@ export const todo = () => {
         }
     }
 
-    const handleDeleteAllTodos = (event: Event) => {
+    const handleDeleteAllButtonClick = (event: Event) => {
         deleteAllTodos(event)
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
     }
@@ -142,10 +140,10 @@ export const todo = () => {
     const deleteAllTodos = (event: Event) => {
         event.preventDefault();
 
-        setObjectInLocalStorage('todoItems', [])
-        setObjectInLocalStorage('amountOfTodosIncludingDeleted', null)
         amountOfTodosIncludingDeleted = 0;
         todoItems = [];
+        setObjectInLocalStorage('todoItems', todoItems)
+        setObjectInLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted)
         todoElementNodeList.forEach(todo => {
             todo.remove();
         })
@@ -162,24 +160,22 @@ export const todo = () => {
         const target = event.currentTarget as HTMLButtonElement;
         const id = target.dataset.id;
         const parent = Array.from(todoElementNodeList).find(todo => todo.getAttribute('data-id') === id);
-        const currentTodo = todoItems.find(item => `${item.id}` === id);
-        const currentTodoIndex = currentTodo ? todoItems.indexOf(currentTodo) : -1;
+        const toDeleteTodo = todoItems.find(item => `${item.id}` === id);
+        const toDeleteTodoIndex = toDeleteTodo ? todoItems.indexOf(toDeleteTodo) : -1;
 
-        for (let i = 0; i < todoItems.length; i++) {
-            if (i === currentTodoIndex) {
-                todoItems.splice(i, 1);
-            }
+        for (let todoIndex = 0; todoIndex < todoItems.length; todoIndex++) {
+            if (todoIndex === toDeleteTodoIndex)
+                todoItems.splice(todoIndex, 1);
         }
 
-        if (parent)
-            parent.remove();
+        if (parent) parent.remove();
 
         setObjectInLocalStorage('todoItems', todoItems);
         todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
 
         if (todoItems.length === 0) {
-            setObjectInLocalStorage('amountOfTodosIncludingDeleted', null)
             amountOfTodosIncludingDeleted = 0;
+            setObjectInLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted)
         }
     }
 
@@ -195,9 +191,7 @@ export const todo = () => {
     }
 
     const addTodoItem = () => {
-        if (addTodoTextInput.value.length === 0 || componentRoot === null) {
-            return;
-        }
+        if (addTodoTextInput.value.length === 0 || componentRoot === null) return;
 
         amountOfTodosIncludingDeleted += 1;
 
@@ -239,24 +233,20 @@ export const todo = () => {
         modifiedTodoItems = Array.from(todoItems)
         const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;
         const parent = currentlyEditedTitle?.parentElement?.parentElement;
+        currentTodoId = parent ? Number(parent.getAttribute('data-id')) : -1;
+        selectedEditableTodoItem = todoItems.find(todo => todo.id === currentTodoId);
 
-        if (editTodoInput && parent) {
-            currentTodoId = Number(parent.getAttribute('data-id'));
-            selectedEditableTodoItem = todoItems.find(todo => todo.id === currentTodoId);
-
-            if (selectedEditableTodoItem) {
-                indexOfEditableTodoItem = todoItems.indexOf(selectedEditableTodoItem);
-                editTodoInput.focus();
-                editTodoInput.setSelectionRange(editTodoInput.value.length, editTodoInput.value.length);
-                editTodoInput.addEventListener('input', setInputState);
-                editTodoInput.addEventListener('keydown', handleEditSubmit);
-                editTodoInput.addEventListener('keyup', (event) => {
-                    if (event.key === "Escape" || event.key === "Enter") {
-                        removeEditInput(editTodoInput);
-                    }
-                });
-                editTodoInput.addEventListener('blur', () => { removeEditInput(editTodoInput) });
-            }
+        if (editTodoInput && selectedEditableTodoItem) {
+            indexOfEditableTodoItem = todoItems.indexOf(selectedEditableTodoItem);
+            editTodoInput.focus();
+            editTodoInput.setSelectionRange(editTodoInput.value.length, editTodoInput.value.length);
+            editTodoInput.addEventListener('input', setInputState);
+            editTodoInput.addEventListener('keydown', handleEditSubmit);
+            editTodoInput.addEventListener('keyup', (event) => {
+                if (event.key === "Escape" || event.key === "Enter")
+                    removeEditInput(editTodoInput);
+            });
+            editTodoInput.addEventListener('blur', () => { removeEditInput(editTodoInput) });
         }
     }
 
