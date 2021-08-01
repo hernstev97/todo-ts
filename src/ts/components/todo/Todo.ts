@@ -7,7 +7,6 @@ import { getObjectInLocalStorage, setObjectInLocalStorage } from "../../util/set
 import addTodoElementToDom from "../../util/addElementToDom";
 import { setDisabledAttribute, removeDisabledAttribute } from "../../util/setDisabledAttribute";
 import { swapArrayElementPositions } from "../../util/swapArrayElementPositions";
-import {TodoPosition} from "../../interfaces/TodoPosition";
 
 export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
@@ -15,10 +14,9 @@ export const todo = () => {
     const addTodoTextInput = componentRoot.querySelector('[data-todo="addTodoTextInput"]') as HTMLInputElement;
     const addTodoFormElement = componentRoot.querySelector('[data-todo="addTodoForm"]') as HTMLFormElement;
     const todoList = componentRoot.querySelector('[data-todo="todoList"]') as HTMLDivElement
-    let todoDomElementList: NodeListOf<Element>;
+    let todoElementNodeList: NodeListOf<Element>;
     let todoDoneCheckboxList: HTMLInputElement[];
     let deleteSingleTodoButtonList: HTMLButtonElement[];
-    let dragAndDropSortGrabberList: HTMLDivElement[];
     let moveTodoInDirectionButtonList: HTMLButtonElement[];
     let todoTitleList: HTMLDivElement[];
     // general
@@ -32,14 +30,6 @@ export const todo = () => {
     let indexOfEditableTodoItem: number;
     let selectedEditableTodoItem: TodoItem | undefined;
     let currentlyEditedTitle: Element; // todo ?rename
-    // drag/drop
-    let isCurrentlyHoldingItem: boolean;
-    let currentlyMovableTodo: HTMLElement | null | undefined;
-    let currentlyMovableTodoRect: DOMRect | null;
-    let positionOfTodosWhenGrabbed: TodoPosition[];
-    let initialGrabbedTodoPosition: TodoPosition | undefined;
-    let hasSurpassedOtherPositions: boolean;
-    let surpassedTodo: TodoPosition | undefined;
 
     const init = () => {
         buildTodosFromLocalStorage();
@@ -47,7 +37,7 @@ export const todo = () => {
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
         setDisabledSortButtons();
         bindEvents();
-        setFontSizeForEachTodo(todoDomElementList, getDeviceOutput());
+        setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
     }
 
     const bindEvents = () => {
@@ -57,13 +47,9 @@ export const todo = () => {
 
         removeAllItemsButton.addEventListener('click', handleDeleteAllTodos)
 
-        window.addEventListener( 'mouseup', releaseItemHandler)
-
         assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
 
         assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo)
-
-        assignBulkEventListeners(dragAndDropSortGrabberList, 'mousedown', holdItemHandler)
 
         assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo)
 
@@ -76,7 +62,7 @@ export const todo = () => {
                 // first gets the font size via a text length comparison
                 // then sets it to a value between 0.8 and 1.4 depending on
                 // deviceOutput and which threshold is passed
-                setFontSizeForEachTodo(todoDomElementList, getDeviceOutput());
+                setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
             }, 250);
         })
     }
@@ -90,10 +76,9 @@ export const todo = () => {
 
     // todo rename
     const setInteractionElements = () => {
-        todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
+        todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
         todoDoneCheckboxList = Array.from(componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]')) as HTMLInputElement[];
         deleteSingleTodoButtonList = Array.from(componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]')) as HTMLButtonElement[];
-        dragAndDropSortGrabberList = Array.from(componentRoot.querySelectorAll('[data-todo="dragAndDropSortGrabber"]')) as  HTMLDivElement[];
         moveTodoInDirectionButtonList = Array.from(componentRoot.querySelectorAll('[data-moveTodoInDirection]')) as HTMLButtonElement[];
         todoTitleList = Array.from(componentRoot.querySelectorAll('[data-todo="todoTitle"]')) as HTMLDivElement[];
     }
@@ -138,9 +123,9 @@ export const todo = () => {
     //  its use should be obvious
     const setDisabledSortButtons = () => {
         if (todoItems.length > 0) {
-            const firstTodo = todoDomElementList[0];
-            const lastTodo = todoDomElementList[todoDomElementList.length - 1];
-            todoDomElementList.forEach(todo => {
+            const firstTodo = todoElementNodeList[0];
+            const lastTodo = todoElementNodeList[todoElementNodeList.length - 1];
+            todoElementNodeList.forEach(todo => {
                 removeDisabledAttribute(todo, '[data-moveTodoInDirection="up"]')
                 removeDisabledAttribute(todo, '[data-moveTodoInDirection="down"]')
             })
@@ -161,7 +146,7 @@ export const todo = () => {
         setObjectInLocalStorage('amountOfTodosIncludingDeleted', null)
         amountOfTodosIncludingDeleted = 0;
         todoItems = [];
-        todoDomElementList.forEach(todo => {
+        todoElementNodeList.forEach(todo => {
             todo.remove();
         })
     }
@@ -176,7 +161,7 @@ export const todo = () => {
         event.preventDefault();
         const target = event.currentTarget as HTMLButtonElement;
         const id = target.dataset.id;
-        const parent = Array.from(todoDomElementList).find(todo => todo.getAttribute('data-id') === id);
+        const parent = Array.from(todoElementNodeList).find(todo => todo.getAttribute('data-id') === id);
         const currentTodo = todoItems.find(item => `${item.id}` === id);
         const currentTodoIndex = currentTodo ? todoItems.indexOf(currentTodo) : -1;
 
@@ -190,7 +175,7 @@ export const todo = () => {
             parent.remove();
 
         setObjectInLocalStorage('todoItems', todoItems);
-        todoDomElementList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
+        todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
 
         if (todoItems.length === 0) {
             setObjectInLocalStorage('amountOfTodosIncludingDeleted', null)
@@ -241,7 +226,6 @@ export const todo = () => {
         setInteractionElements();
         todoDoneCheckboxList[indexForNewItem].addEventListener('change', toggleTodoComplete)
         deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', handleDeleteTodo)
-        dragAndDropSortGrabberList[indexForNewItem].addEventListener('mousedown', holdItemHandler)
         todoTitleList[indexForNewItem].addEventListener('dblclick', handleEditTodoLabel);
         moveTodoInDirectionButtonList.forEach(button => {
             if (button.getAttribute('data-id') === `${newTodo.id}`)
@@ -287,6 +271,7 @@ export const todo = () => {
         const todoLabel = currentlyEditedTitle.querySelector('p');
         const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;
         const newTitle = inputState.length > 0 ? inputState : editTodoInput.value;
+
         if (key === "Enter" && selectedEditableTodoItem && todoLabel) {
             modifiedTodoItems[indexOfEditableTodoItem] = {
                 id: currentTodoId,
@@ -300,166 +285,17 @@ export const todo = () => {
         }
     }
 
-    // ================ //
-    // DRAG N DROP SORT //
-    // ================ //
-    /* get position of all todos while grabbing
-     * delete positions after releasing grab
-     * todo set newPosition via the calculated position minus its original position as it was grabbed
-     * if y-position of currently held item is >= OR <= any item it takes its position, depending on movement up or down
-     * get all todoElements
-     *      split the array by the currently held todoElement
-     * get all the ids of the elements preceeding the grabbed element in one array
-     *  and the elements following in another element
-     *  then compare preceeding elements on upwards movement and following elements on downwards movement
-     * [#1 item]
-     * [#2 movingItem] <-- this will not take the position of #1 just because it is beyond the y-position of #1.
-     * [#3 item]           only if #2 would be moved to the y-position of #1 or smaller (because of upwards movement)
-     * [#4 item]           it would replace it. then #2 would become #1 and the other way around.
-     * to detect upwards or downwards movement: compare to first initialized y-position of grabbed element.
-     *  if the new position is larger than the older position it's downwards movement.
-     * todo if there was movement in any direction but on release the grabbed item is not enough to surpass any element
-     *  it should just return to its original position.
-     * todo after release while surpassing a todoItem they should in theory just need to switch places in the array
-     *  and the instance had to be rerendered
-     * todo dont forget localStorage
-     */
-
-    // WIP
-    const holdItemHandler = (event: Event | MouseEvent) => {
-        if (event.type === 'mousedown') {
-            console.log("hold")
-            isCurrentlyHoldingItem = true;
-            currentlyMovableTodo = (event.currentTarget as HTMLDivElement)?.parentElement;
-            positionOfTodosWhenGrabbed = positionOfTodos();
-
-            if (currentlyMovableTodo){
-                console.log("todoDomElementList", todoDomElementList)
-                console.log("currentlyMovableTodo", currentlyMovableTodo)
-                currentlyMovableTodoRect = currentlyMovableTodo.getBoundingClientRect();
-                initialGrabbedTodoPosition = positionOfTodosWhenGrabbed.find(todo => {
-                    return todo.id === Number(currentlyMovableTodo?.getAttribute('data-id'));
-                });
-
-                console.log("initialGrabbedTodoPosition", initialGrabbedTodoPosition)
-                if (initialGrabbedTodoPosition) {
-                    currentlyMovableTodo.classList.add('moving');
-                    currentlyMovableTodo.style.width = `${currentlyMovableTodoRect.width}px`;
-                    currentlyMovableTodo.style.top = `${initialGrabbedTodoPosition.y - 16}px`;
-                    currentlyMovableTodo.insertAdjacentHTML(
-                        'beforebegin',
-                        createPlaceholderForGrabbedElement(
-                            initialGrabbedTodoPosition.y,
-                            initialGrabbedTodoPosition.width,
-                            initialGrabbedTodoPosition.height
-                        )
-                    );
-                }
-            }
-            window.addEventListener('mousemove', determineNewPositionOfTodoAfterMoving)
-        }
-    }
-
-    // WIP
-    const releaseItemHandler = (event: Event | MouseEvent) => {
-        console.log("release")
-        if (currentlyMovableTodo && event.type === 'mouseup') {
-            if (hasSurpassedOtherPositions) {
-                console.log("make position switch")
-                console.log("surpassedTodo", surpassedTodo);
-            } else {
-                currentlyMovableTodo.style.width = '';
-                currentlyMovableTodo.style.top = '';
-            }
-            window.removeEventListener('mousemove', determineNewPositionOfTodoAfterMoving);
-            const placeholder = componentRoot.querySelector('[data-todo="placeholder"]');
-            currentlyMovableTodo.classList.remove('moving');
-            placeholder?.remove();
-            isCurrentlyHoldingItem = false;
-            positionOfTodosWhenGrabbed = [];
-        }
-    }
-
-    // WIP
-    const determineNewPositionOfTodoAfterMoving = (event: Event | MouseEvent) => {
-        if ("y" in event && currentlyMovableTodo && currentlyMovableTodoRect) {
-            const itemHeight = currentlyMovableTodoRect.height;
-            const y = event.y;
-            const pos = y - (itemHeight / 2) - 16;
-
-            if (initialGrabbedTodoPosition) {
-                const initialGrabbedTodoY = initialGrabbedTodoPosition.y
-                const testArr = Array.from(todoDomElementList);
-                const testIndexOf = testArr.indexOf(currentlyMovableTodo)
-                const pre = testArr.slice(0, testIndexOf).map(p => Number(p.getAttribute('data-id')))
-                const post = testArr.slice(testIndexOf+1).map(p => Number(p.getAttribute('data-id')))
-                let otherTodoYPositions: number[];
-
-                if (initialGrabbedTodoY > (y - (currentlyMovableTodoRect.height / 2))) {
-                    const filteredPre = positionOfTodosWhenGrabbed.filter(todo => todo.id === pre.find(p => p === todo.id));
-                    otherTodoYPositions = filteredPre.filter(todo => {
-                        if (todo.id !== Number(currentlyMovableTodo?.getAttribute('data-id'))) return todo;
-                    }).map(position => position.y)
-                    hasSurpassedOtherPositions = otherTodoYPositions.some(position => position > (pos + 16));
-
-                } else {
-                    const filteredPost = positionOfTodosWhenGrabbed.filter(todo => todo.id === post.find(p => p === todo.id));
-                    otherTodoYPositions = filteredPost.filter(todo => {
-                        if (todo.id !== Number(currentlyMovableTodo?.getAttribute('data-id'))) return todo;
-                    }).map(position => position.y)
-                    hasSurpassedOtherPositions = otherTodoYPositions.some(position => position < (pos + 16))
-                }
-
-                if (hasSurpassedOtherPositions) {
-                    let closest = otherTodoYPositions.reduce(function(prev, curr) {
-                        return (Math.abs(curr - pos) < Math.abs(prev - pos) ? curr : prev);
-                    });
-                    console.log("closest", closest)
-                    console.log("otherTodoYPositions", otherTodoYPositions)
-                    surpassedTodo = positionOfTodosWhenGrabbed.find(todo => todo.y === closest)
-                    console.log("surpassedTodo", surpassedTodo)
-                }
-
-                currentlyMovableTodo.style.width = `${currentlyMovableTodoRect.width}px`;
-                currentlyMovableTodo.style.top = `${pos}px`;
-            }
-        }
-    }
-
-    const createPlaceholderForGrabbedElement = (top: number, width: number, height: number) => {
-        return `<div data-todo="placeholder" style="position: relative; top: ${top}px; width: ${width}px; height: ${height}px; margin-top: 1rem" />`;
-    }
-
-    const positionOfTodos = (): TodoPosition[] => {
-        let positions: TodoPosition[] = [];
-
-        todoDomElementList.forEach((todo, index) => {
-            positions.push({
-                index: index,
-                id: Number(todo.getAttribute('data-id')),
-                y: todo.getBoundingClientRect().y,
-                height: todo.getBoundingClientRect().height,
-                width: todo.getBoundingClientRect().width,
-                element: todo,
-            })
-        })
-
-        return positions;
-    }
-
     const handleMoveTodo = (event: Event) => {
-        console.log("move")
         moveTodo(event);
         renderAllTodos(todoItems);
         setInteractionElements();
-        setFontSizeForEachTodo(todoDomElementList, getDeviceOutput());
+        setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
 
         // here all listeners for elements inside a todoElement have to be set again
         // because within the renderAllTodos function the innerHTML of the todolist ist emptied
         // which deletes all listeners as well
         assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
         assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo);
-        assignBulkEventListeners(dragAndDropSortGrabberList, 'mousedown', holdItemHandler);
         assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo);
         assignBulkEventListeners(todoTitleList, 'dblclick', handleEditTodoLabel);
 
