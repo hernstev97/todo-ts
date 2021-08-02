@@ -1,4 +1,4 @@
-import { DeviceOutputType } from "../interfaces/DeviceOutputType";
+import { DeviceOutputType } from "../types/DeviceOutputType";
 
 export const getDeviceOutput = (): DeviceOutputType => {
     const isMobile = window.innerWidth <= 720;

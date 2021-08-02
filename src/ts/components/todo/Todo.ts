@@ -1,11 +1,13 @@
 import TodoItem from "../../interfaces/TodoItem";
 import allItemsRemoveButtonVisibilityHandler from "../../util/allItemsRemoveButtonVisibilityHandler";
-import { assignBulkEventListeners } from "../../util/eventListeners";
+import { assignBulkEventListeners } from "../../util/assignBulkEventListeners";
 import setFontSizeForEachTodo from "../../util/setFontSizeForEachTodo";
 import { getDeviceOutput } from "../../util/getDeviceOutput";
-import { getObjectInLocalStorage, setObjectInLocalStorage } from "../../util/setObjectInLocalStorage";
+import setLocalStorage from "../../util/localStorage/setLocalStorage";
+import getLocalStorage from "../../util/localStorage/getLocalStorage";
 import addTodoElementToDom from "../../util/addElementToDom";
-import { setDisabledAttribute, removeDisabledAttribute } from "../../util/setDisabledAttribute";
+import { setDisabledAttribute } from "../../util/disabledAttribute/setDisabledAttribute";
+import { removeDisabledAttribute } from "../../util/disabledAttribute/removeDisabledAttribute";
 import { swapArrayElementPositions } from "../../util/swapArrayElementPositions";
 
 export const todo = () => {
@@ -29,7 +31,7 @@ export const todo = () => {
     let modifiedTodoItems: TodoItem[] = [];
     let indexOfEditableTodoItem: number;
     let selectedEditableTodoItem: TodoItem | undefined;
-    let currentlyEditedTitle: Element; // todo ?rename
+    let currentlyEditedTitle: Element;
 
     const init = () => {
         buildTodosFromLocalStorage();
@@ -68,13 +70,12 @@ export const todo = () => {
     }
 
     const buildTodosFromLocalStorage = () => {
-        const todoItemsFromStorage = getObjectInLocalStorage('todoItems');
+        const todoItemsFromStorage = getLocalStorage('todoItems');
         todoItems = todoItemsFromStorage === undefined ? [] : todoItemsFromStorage;
-        amountOfTodosIncludingDeleted = getObjectInLocalStorage('amountOfTodosIncludingDeleted')
+        amountOfTodosIncludingDeleted = getLocalStorage('amountOfTodosIncludingDeleted')
         renderAllTodos(todoItems);
     }
 
-    // todo rename
     const setInteractionElements = () => {
         todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
         todoDoneCheckboxList = Array.from(componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]')) as HTMLInputElement[];
@@ -116,7 +117,7 @@ export const todo = () => {
                 parent.classList.remove('todo--completed');
         }
 
-        setObjectInLocalStorage('todoItems', todoItems);
+        setLocalStorage('todoItems', todoItems);
     }
 
     const setDisabledSortButtons = () => {
@@ -142,8 +143,8 @@ export const todo = () => {
 
         amountOfTodosIncludingDeleted = 0;
         todoItems = [];
-        setObjectInLocalStorage('todoItems', todoItems)
-        setObjectInLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted)
+        setLocalStorage('todoItems', todoItems)
+        setLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted)
         todoElementNodeList.forEach(todo => {
             todo.remove();
         })
@@ -170,12 +171,12 @@ export const todo = () => {
 
         if (parent) parent.remove();
 
-        setObjectInLocalStorage('todoItems', todoItems);
+        setLocalStorage('todoItems', todoItems);
         todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
 
         if (todoItems.length === 0) {
             amountOfTodosIncludingDeleted = 0;
-            setObjectInLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted)
+            setLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted)
         }
     }
 
@@ -202,8 +203,8 @@ export const todo = () => {
         }
 
         todoItems.push(todoItem);
-        setObjectInLocalStorage('todoItems', todoItems);
-        setObjectInLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted);
+        setLocalStorage('todoItems', todoItems);
+        setLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted);
         addTodoTextInput.value = '';
         inputState = '';
     }
@@ -271,7 +272,8 @@ export const todo = () => {
 
             todoLabel.textContent = newTitle;
             todoItems = modifiedTodoItems;
-            setObjectInLocalStorage('todoItems', modifiedTodoItems);
+            setLocalStorage('todoItems', modifiedTodoItems);
+            setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
         }
     }
 
@@ -279,6 +281,7 @@ export const todo = () => {
         moveTodo(event);
         renderAllTodos(todoItems);
         setInteractionElements();
+        setDisabledSortButtons();
         setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
 
         // here all listeners for elements inside a todoElement have to be set again
@@ -289,19 +292,18 @@ export const todo = () => {
         assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo);
         assignBulkEventListeners(todoTitleList, 'dblclick', handleEditTodoLabel);
 
-        setDisabledSortButtons();
-        setObjectInLocalStorage('todoItems', todoItems);
+        setLocalStorage('todoItems', todoItems);
     }
 
     const moveTodo = (event: Event) => {
-        const button = event.currentTarget as HTMLButtonElement;
-        const buttonId = button.getAttribute('data-id');
+        const moveButton = event.currentTarget as HTMLButtonElement;
+        const buttonId = moveButton.getAttribute('data-id');
         const todoItemToMove = todoItems.find(item => `${item.id}` === buttonId) as TodoItem;
         const indexOfTodoItemToMove = todoItems.indexOf(todoItemToMove);
 
-        if (button.dataset.movetodoindirection === 'up')
+        if (moveButton.dataset.movetodoindirection === 'up')
             todoItems = swapArrayElementPositions(todoItems, indexOfTodoItemToMove, indexOfTodoItemToMove - 1);
-        else if (button.dataset.movetodoindirection === 'down')
+        else if (moveButton.dataset.movetodoindirection === 'down')
             todoItems = swapArrayElementPositions(todoItems, indexOfTodoItemToMove, indexOfTodoItemToMove + 1);
     }
 

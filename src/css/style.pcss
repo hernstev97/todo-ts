@@ -12,39 +12,6 @@
     min-height: 100vh;
 }
 
-.todo {
-    width: 100%;
-    padding: 1rem;
-    background-color: var(--light-gray);
-    margin-top: 1rem;
-    border-radius: 0.3rem;
-    position: relative;
-    transition: box-shadow .2s ease;
-
-    &__input {
-        display: flex;
-        gap: 1rem;
-    }
-
-    &__input-form {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        width: 100%;
-    }
-
-    &.moving {
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-        cursor: grabbing;
-        z-index: 100;
-        position: absolute;
-
-        * {
-            pointer-events: none;
-        }
-    }
-}
-
 @media only screen and (min-width: 720px) {
     :root {
         --breakpoint: var(--md);

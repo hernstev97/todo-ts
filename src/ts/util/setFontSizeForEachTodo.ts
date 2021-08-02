@@ -1,7 +1,6 @@
 // This enum defines how many characters are allowed
 // within a given text, before a smaller font size is set
-
-enum CharacterThreshold {
+enum CharacterAmountThreshold {
     MOBILE_LITTLE = 27,
     TABLET_LITTLE = 61,
     DESKTOP_LITTLE = 106,
@@ -13,52 +12,41 @@ enum CharacterThreshold {
     DESKTOP_BIG = 292,
 }
 
-function getFontSize(text: HTMLParagraphElement, deviceOutput: string) {
-    if (!text.textContent) {
-        return text.style.fontSize;
-    }
+function getFontSizeREM(text: HTMLParagraphElement, deviceOutput: string) {
+    if (!text.textContent) return text.style.fontSize;
+
     const textLength = text.textContent.length;
     let fontSize = 1.2;
+
     if (deviceOutput === 'mobile') {
-        if (textLength >= CharacterThreshold.MOBILE_LITTLE) {
+        if (textLength >= CharacterAmountThreshold.MOBILE_LITTLE)
             fontSize = 1.2;
-        }
-        if (textLength >= CharacterThreshold.MOBILE_MEDIUM) {
+        if (textLength >= CharacterAmountThreshold.MOBILE_MEDIUM)
             fontSize = 1;
-        }
-        if (textLength >= CharacterThreshold.MOBILE_BIG) {
+        if (textLength >= CharacterAmountThreshold.MOBILE_BIG)
             fontSize = 0.85;
-        }
     }
 
     if (deviceOutput === 'tablet') {
-        if (textLength < CharacterThreshold.TABLET_LITTLE) {
+        if (textLength < CharacterAmountThreshold.TABLET_LITTLE)
             fontSize = 1.3;
-        }
-        if (textLength >= CharacterThreshold.TABLET_LITTLE) {
+        if (textLength >= CharacterAmountThreshold.TABLET_LITTLE)
             fontSize = 1.1;
-        }
-        if (textLength >= CharacterThreshold.TABLET_MEDIUM) {
+        if (textLength >= CharacterAmountThreshold.TABLET_MEDIUM)
             fontSize = 1.0;
-        }
-        if (textLength >= CharacterThreshold.TABLET_BIG) {
+        if (textLength >= CharacterAmountThreshold.TABLET_BIG)
             fontSize = 0.8;
-        }
     }
 
     if (deviceOutput === 'desktop') {
-        if (textLength < CharacterThreshold.DESKTOP_LITTLE) {
+        if (textLength < CharacterAmountThreshold.DESKTOP_LITTLE)
             fontSize = 1.4;
-        }
-        if (textLength >= CharacterThreshold.DESKTOP_LITTLE) {
+        if (textLength >= CharacterAmountThreshold.DESKTOP_LITTLE)
             fontSize = 1.2;
-        }
-        if (textLength >= CharacterThreshold.DESKTOP_MEDIUM) {
+        if (textLength >= CharacterAmountThreshold.DESKTOP_MEDIUM)
             fontSize = 1.0;
-        }
-        if (textLength >= CharacterThreshold.DESKTOP_BIG) {
+        if (textLength >= CharacterAmountThreshold.DESKTOP_BIG)
             fontSize = 0.8;
-        }
     }
 
     return `${fontSize}rem`
@@ -69,6 +57,6 @@ export default function setFontSizeForEachTodo(allTodos: NodeListOf<Element>, de
         const text = todo.querySelector('.todo__label') as HTMLParagraphElement;
 
         if (text.textContent)
-            text.style.fontSize = getFontSize(text, 'mobile')
+            text.style.fontSize = getFontSizeREM(text, deviceOutput)
     })
 }
