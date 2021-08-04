@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, user-scalable=no">
+        <title>Todo App</title>
+    </head>
+    <body>
+        <main>
+            <div data-component="todo" class="todo-app">
+                <h1>Todo</h1>
+                <div class="add-todo">
+                    <form data-todo="addTodoForm" class="add-todo__form">
+                        <label for="addTodoTextInput">Add a todo:</label>
+                        <input
+                            type="text"
+                            id="addTodoTextInput"
+                            name="addTodoTextInput"
+                            data-todo="addTodoTextInput"
+                            class="add-todo__input"
+                            placeholder="Add a todo..."
+                        />
+                        <button data-todo="addTodoButton" class="add-todo__submit">Add</button>
+                    </form>
+                    <button data-todo="removeAllItemsButton" class="remove-all-items"></button>
+                </div>
+                <div data-todo="todoList" class="todo-list"></div>
+            </div>
+        </main>
+    </body>
+</html>

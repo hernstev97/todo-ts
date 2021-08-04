@@ -2,13 +2,13 @@ import TodoItem from "../../interfaces/TodoItem";
 import allItemsRemoveButtonVisibilityHandler from "../../util/allItemsRemoveButtonVisibilityHandler";
 import { assignBulkEventListeners } from "../../util/assignBulkEventListeners";
 import setFontSizeForEachTodo from "../../util/setFontSizeForEachTodo";
-import { getDeviceOutput } from "../../util/getDeviceOutput";
-import setLocalStorage from "../../util/localStorage/setLocalStorage";
-import getLocalStorage from "../../util/localStorage/getLocalStorage";
+import getDeviceOutput from "../../util/getDeviceOutput";
+import { setLocalStorage, getLocalStorage } from "../../util/localStorageUtility";
 import addTodoElementToDom from "../../util/addElementToDom";
-import { setDisabledAttribute } from "../../util/disabledAttribute/setDisabledAttribute";
-import { removeDisabledAttribute } from "../../util/disabledAttribute/removeDisabledAttribute";
+import { setDisabledAttribute, removeDisabledAttribute } from "../../util/disabledAttributeUtility";
 import { swapArrayElementPositions } from "../../util/swapArrayElementPositions";
+import { getUniqueId } from "../../util/uniqueId";
+import validateInput from "../../util/validateInput";
 
 export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
@@ -25,9 +25,9 @@ export const todo = () => {
     let todoItems: TodoItem[] = [];
     let inputState: string = '';
     let timeout: number;
-    let amountOfTodosIncludingDeleted: number = 0;
+    let uniqueIdForThisTodo: string = '';
     // edit
-    let currentTodoId: number;
+    let currentTodoId: string | null;
     let modifiedTodoItems: TodoItem[] = [];
     let indexOfEditableTodoItem: number;
     let selectedEditableTodoItem: TodoItem | undefined;
@@ -39,23 +39,25 @@ export const todo = () => {
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
         setDisabledSortButtons();
         bindEvents();
-        setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
+        setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
+
+        console.log("getUniqueId()", getUniqueId())
     }
 
     const bindEvents = () => {
-        addTodoTextInput.addEventListener( 'input', setInputState)
+        addTodoTextInput.addEventListener( 'input', setInputState);
 
-        addTodoFormElement.addEventListener('submit', handleFormSubmit)
+        addTodoFormElement.addEventListener('submit', handleFormSubmit);
 
-        removeAllItemsButton.addEventListener('click', handleDeleteAllButtonClick)
+        removeAllItemsButton.addEventListener('click', handleDeleteAllButtonClick);
 
         assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
 
-        assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo)
+        assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo);
 
-        assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo)
+        assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo);
 
-        assignBulkEventListeners(todoTitleList, 'dblclick', handleEditTodoLabel)
+        assignBulkEventListeners(todoTitleList, 'dblclick', handleEditTodoLabel);
 
         window.addEventListener('resize', () => {
             clearTimeout(timeout);
@@ -64,15 +66,15 @@ export const todo = () => {
                 // first gets the font size via a text length comparison
                 // then sets it to a value between 0.8 and 1.4 depending on
                 // deviceOutput and which threshold is passed
-                setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
+                setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
             }, 250);
-        })
+        });
     }
 
+    // general functions
     const buildTodosFromLocalStorage = () => {
         const todoItemsFromStorage = getLocalStorage('todoItems');
         todoItems = todoItemsFromStorage === undefined ? [] : todoItemsFromStorage;
-        amountOfTodosIncludingDeleted = getLocalStorage('amountOfTodosIncludingDeleted')
         renderAllTodos(todoItems);
     }
 
@@ -95,15 +97,63 @@ export const todo = () => {
         });
     }
 
+    // adding a todoItem
     const setInputState = (event: Event) => {
         const input = event?.target as HTMLInputElement;
         inputState = input.value ?? '';
     }
 
+    const addTodoItem = () => {
+        if (addTodoTextInput.value.length === 0) return;
+
+        uniqueIdForThisTodo = getUniqueId();
+
+        const todoItem: TodoItem = {
+            id: uniqueIdForThisTodo,
+            title: inputState,
+            completed: false,
+        }
+
+        todoItems.push(todoItem);
+        setLocalStorage('todoItems', todoItems);
+        addTodoTextInput.value = '';
+        inputState = '';
+    }
+
+    const createNewTodoDOMElement = () => {
+        const indexForNewItem = todoItems.length - 1
+        const newTodo = todoItems[indexForNewItem];
+        addTodoElementToDom({
+            id: uniqueIdForThisTodo,
+            title: newTodo.title,
+            completed: newTodo.completed,
+        });
+
+        setInteractionElements();
+        todoDoneCheckboxList[indexForNewItem].addEventListener('change', toggleTodoComplete)
+        deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', handleDeleteTodo)
+        todoTitleList[indexForNewItem].addEventListener('dblclick', handleEditTodoLabel);
+        moveTodoInDirectionButtonList.forEach(button => {
+            if (button.getAttribute('data-id') === newTodo.id)
+                button.addEventListener('click', handleMoveTodo);
+        })
+    }
+
+    const handleFormSubmit = (event: Event) => {
+        event.preventDefault();
+        if (validateInput(inputState)) {
+            addTodoItem();
+            createNewTodoDOMElement();
+            allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+            setDisabledSortButtons();
+        }
+    }
+
+    // completing a todoItem
     const toggleTodoComplete = (event: Event) => {
         const element = event.currentTarget as HTMLElement;
         const id = element.dataset.id;
-        const currentTodo = todoItems.find(item => `${item.id}` === id);
+        const currentTodo = todoItems.find(item => item.id === id);
         const parent = element.parentElement?.parentElement;
 
         if (currentTodo === undefined) return;
@@ -120,19 +170,7 @@ export const todo = () => {
         setLocalStorage('todoItems', todoItems);
     }
 
-    const setDisabledSortButtons = () => {
-        if (todoItems.length > 0) {
-            const firstTodo = todoElementNodeList[0];
-            const lastTodo = todoElementNodeList[todoElementNodeList.length - 1];
-            todoElementNodeList.forEach(todo => {
-                removeDisabledAttribute(todo, '[data-moveTodoInDirection="up"]')
-                removeDisabledAttribute(todo, '[data-moveTodoInDirection="down"]')
-            })
-            setDisabledAttribute(firstTodo, '[data-moveTodoInDirection="up"]')
-            setDisabledAttribute(lastTodo, '[data-moveTodoInDirection="down"]')
-        }
-    }
-
+    // deleting all todoItems
     const handleDeleteAllButtonClick = (event: Event) => {
         deleteAllTodos(event)
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
@@ -141,15 +179,15 @@ export const todo = () => {
     const deleteAllTodos = (event: Event) => {
         event.preventDefault();
 
-        amountOfTodosIncludingDeleted = 0;
+        uniqueIdForThisTodo = '';
         todoItems = [];
         setLocalStorage('todoItems', todoItems)
-        setLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted)
         todoElementNodeList.forEach(todo => {
             todo.remove();
         })
     }
 
+    // deleting a single todoItem
     const handleDeleteTodo = (event: Event) => {
         deleteSingleTodo(event)
         setDisabledSortButtons();
@@ -161,7 +199,7 @@ export const todo = () => {
         const target = event.currentTarget as HTMLButtonElement;
         const id = target.dataset.id;
         const parent = Array.from(todoElementNodeList).find(todo => todo.getAttribute('data-id') === id);
-        const toDeleteTodo = todoItems.find(item => `${item.id}` === id);
+        const toDeleteTodo = todoItems.find(item => item.id === id);
         const toDeleteTodoIndex = toDeleteTodo ? todoItems.indexOf(toDeleteTodo) : -1;
 
         for (let todoIndex = 0; todoIndex < todoItems.length; todoIndex++) {
@@ -175,66 +213,18 @@ export const todo = () => {
         todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
 
         if (todoItems.length === 0) {
-            amountOfTodosIncludingDeleted = 0;
-            setLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted)
+            uniqueIdForThisTodo = '';
         }
     }
 
-    // each function should serve 1 purpose and be relatively generic. it should be usable at multiple places.
-    const handleFormSubmit = (event: Event) => {
-        event.preventDefault();
-        if (inputState.length > 0) {
-            addTodoItem();
-            createNewTodoDOMElement();
-            allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-            setDisabledSortButtons();
-        }
-    }
-
-    const addTodoItem = () => {
-        if (addTodoTextInput.value.length === 0 || componentRoot === null) return;
-
-        amountOfTodosIncludingDeleted += 1;
-
-        const todoItem: TodoItem = {
-            id: amountOfTodosIncludingDeleted,
-            title: inputState,
-            completed: false,
-        }
-
-        todoItems.push(todoItem);
-        setLocalStorage('todoItems', todoItems);
-        setLocalStorage('amountOfTodosIncludingDeleted', amountOfTodosIncludingDeleted);
-        addTodoTextInput.value = '';
-        inputState = '';
-    }
-
-    const createNewTodoDOMElement = () => {
-        const indexForNewItem = todoItems.length - 1
-        const newTodo = todoItems[indexForNewItem];
-        addTodoElementToDom({
-            id: amountOfTodosIncludingDeleted,
-            title: newTodo.title,
-            completed: newTodo.completed,
-        });
-
-        setInteractionElements();
-        todoDoneCheckboxList[indexForNewItem].addEventListener('change', toggleTodoComplete)
-        deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', handleDeleteTodo)
-        todoTitleList[indexForNewItem].addEventListener('dblclick', handleEditTodoLabel);
-        moveTodoInDirectionButtonList.forEach(button => {
-            if (button.getAttribute('data-id') === `${newTodo.id}`)
-                button.addEventListener('click', handleMoveTodo);
-        })
-    }
-
+    // editing a todoItem
     const handleEditTodoLabel = (event: Event) => {
         currentlyEditedTitle = event.currentTarget as Element;
         currentlyEditedTitle.classList.add('todo__title--edit');
         modifiedTodoItems = Array.from(todoItems)
         const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;
         const parent = currentlyEditedTitle?.parentElement?.parentElement;
-        currentTodoId = parent ? Number(parent.getAttribute('data-id')) : -1;
+        currentTodoId = parent ? parent.getAttribute('data-id') : '';
         selectedEditableTodoItem = todoItems.find(todo => todo.id === currentTodoId);
 
         if (editTodoInput && selectedEditableTodoItem) {
@@ -263,7 +253,7 @@ export const todo = () => {
         const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;
         const newTitle = inputState.length > 0 ? inputState : editTodoInput.value;
 
-        if (key === "Enter" && selectedEditableTodoItem && todoLabel) {
+        if (key === "Enter" && selectedEditableTodoItem && todoLabel && currentTodoId && validateInput(newTitle)) {
             modifiedTodoItems[indexOfEditableTodoItem] = {
                 id: currentTodoId,
                 title: newTitle,
@@ -273,7 +263,21 @@ export const todo = () => {
             todoLabel.textContent = newTitle;
             todoItems = modifiedTodoItems;
             setLocalStorage('todoItems', modifiedTodoItems);
-            setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
+            setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
+        }
+    }
+
+    // moving a todoItem with buttons
+    const setDisabledSortButtons = () => {
+        if (todoItems.length > 0) {
+            const firstTodo = todoElementNodeList[0];
+            const lastTodo = todoElementNodeList[todoElementNodeList.length - 1];
+            todoElementNodeList.forEach(todo => {
+                removeDisabledAttribute(todo, '[data-moveTodoInDirection="up"]')
+                removeDisabledAttribute(todo, '[data-moveTodoInDirection="down"]')
+            })
+            setDisabledAttribute(firstTodo, '[data-moveTodoInDirection="up"]')
+            setDisabledAttribute(lastTodo, '[data-moveTodoInDirection="down"]')
         }
     }
 
@@ -282,7 +286,7 @@ export const todo = () => {
         renderAllTodos(todoItems);
         setInteractionElements();
         setDisabledSortButtons();
-        setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput());
+        setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
 
         // here all listeners for elements inside a todoElement have to be set again
         // because within the renderAllTodos function the innerHTML of the todolist ist emptied
@@ -298,7 +302,7 @@ export const todo = () => {
     const moveTodo = (event: Event) => {
         const moveButton = event.currentTarget as HTMLButtonElement;
         const buttonId = moveButton.getAttribute('data-id');
-        const todoItemToMove = todoItems.find(item => `${item.id}` === buttonId) as TodoItem;
+        const todoItemToMove = todoItems.find(item => item.id === buttonId) as TodoItem;
         const indexOfTodoItemToMove = todoItems.indexOf(todoItemToMove);
 
         if (moveButton.dataset.movetodoindirection === 'up')

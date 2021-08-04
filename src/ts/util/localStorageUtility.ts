@@ -1,4 +1,4 @@
-export default function getLocalStorage<T>(key: string) {
+export function getLocalStorage<T>(key: string) {
     const localStorage = window.localStorage.getItem(key);
     if (
         localStorage !== null
@@ -7,4 +7,8 @@ export default function getLocalStorage<T>(key: string) {
     ) {
         return JSON.parse(localStorage);
     }
+}
+
+export function setLocalStorage<T>(key: string, object: T) {
+    window.localStorage.setItem(key, JSON.stringify(object));
 }

@@ -14,7 +14,7 @@ module.exports = {
             filename: "[name].min.css"
         }),
         new HtmlWebpackPlugin({
-            template: "./src/template.html"
+            template: "./src/index.html"
         })
     ],
     module: {

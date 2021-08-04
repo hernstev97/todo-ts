@@ -5,3 +5,5 @@ export const swapArrayElementPositions = <T>(array: T[], indexA: number, indexB:
 
     return array;
 };
+
+module.exports = swapArrayElementPositions;
