@@ -9,7 +9,8 @@
     cursor: pointer;
     background-color: transparent;
 
-    div {
+    span {
+        display: inline-block;
         width: 0;
         height: 0;
         border-style: solid;
@@ -17,7 +18,7 @@
     }
 
     &--up {
-        div {
+        span {
             border-width: 0 10px 12px 10px;
             border-color: transparent transparent var(--move-arrows) transparent;
         }
@@ -28,12 +29,12 @@
     }
 
     &--down {
-        div {
+        span {
             border-width: 12px 10px 0 10px;
             border-color: var(--move-arrows) transparent transparent transparent;
         }
 
-        &:hover div {
+        &:hover span {
             transform: translateY(5px);
         }
     }

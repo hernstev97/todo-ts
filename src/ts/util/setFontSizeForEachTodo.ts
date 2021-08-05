@@ -12,7 +12,7 @@ enum CharacterAmountThreshold {
     DESKTOP_BIG = 292,
 }
 
-function getFontSizeREM(text: HTMLParagraphElement, deviceOutput: string) {
+export function getFontSizeREM(text: HTMLParagraphElement, deviceOutput: string) {
     if (!text.textContent) return text.style.fontSize;
 
     const textLength = text.textContent.length;
@@ -33,7 +33,7 @@ function getFontSizeREM(text: HTMLParagraphElement, deviceOutput: string) {
         if (textLength >= CharacterAmountThreshold.TABLET_LITTLE)
             fontSize = 1.1;
         if (textLength >= CharacterAmountThreshold.TABLET_MEDIUM)
-            fontSize = 1.0;
+            fontSize = 1;
         if (textLength >= CharacterAmountThreshold.TABLET_BIG)
             fontSize = 0.8;
     }
@@ -44,7 +44,7 @@ function getFontSizeREM(text: HTMLParagraphElement, deviceOutput: string) {
         if (textLength >= CharacterAmountThreshold.DESKTOP_LITTLE)
             fontSize = 1.2;
         if (textLength >= CharacterAmountThreshold.DESKTOP_MEDIUM)
-            fontSize = 1.0;
+            fontSize = 1;
         if (textLength >= CharacterAmountThreshold.DESKTOP_BIG)
             fontSize = 0.8;
     }

@@ -8,5 +8,3 @@ export default function validateInput(input: string): boolean {
 
     return points === target;
 }
-
-module.exports = validateInput;

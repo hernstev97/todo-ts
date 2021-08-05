@@ -4,10 +4,10 @@ import { assignBulkEventListeners } from "../../util/assignBulkEventListeners";
 import setFontSizeForEachTodo from "../../util/setFontSizeForEachTodo";
 import getDeviceOutput from "../../util/getDeviceOutput";
 import { setLocalStorage, getLocalStorage } from "../../util/localStorageUtility";
-import addTodoElementToDom from "../../util/addElementToDom";
+import addTodoElementToDom from "../../util/todoDomElementGeneration/addElementToDom";
 import { setDisabledAttribute, removeDisabledAttribute } from "../../util/disabledAttributeUtility";
-import { swapArrayElementPositions } from "../../util/swapArrayElementPositions";
-import { getUniqueId } from "../../util/uniqueId";
+import swapArrayElementPositions from "../../util/swapArrayElementPositions";
+import getUniqueId from "../../util/uniqueId";
 import validateInput from "../../util/validateInput";
 
 export const todo = () => {
@@ -171,11 +171,6 @@ export const todo = () => {
     }
 
     // deleting all todoItems
-    const handleDeleteAllButtonClick = (event: Event) => {
-        deleteAllTodos(event)
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-    }
-
     const deleteAllTodos = (event: Event) => {
         event.preventDefault();
 
@@ -187,13 +182,12 @@ export const todo = () => {
         })
     }
 
-    // deleting a single todoItem
-    const handleDeleteTodo = (event: Event) => {
-        deleteSingleTodo(event)
-        setDisabledSortButtons();
+    const handleDeleteAllButtonClick = (event: Event) => {
+        deleteAllTodos(event)
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
     }
 
+    // deleting a single todoItem
     const deleteSingleTodo = (event: Event) => {
         event.preventDefault();
         const target = event.currentTarget as HTMLButtonElement;
@@ -215,6 +209,12 @@ export const todo = () => {
         if (todoItems.length === 0) {
             uniqueIdForThisTodo = '';
         }
+    }
+
+    const handleDeleteTodo = (event: Event) => {
+        deleteSingleTodo(event)
+        setDisabledSortButtons();
+        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
     }
 
     // editing a todoItem
@@ -305,10 +305,17 @@ export const todo = () => {
         const todoItemToMove = todoItems.find(item => item.id === buttonId) as TodoItem;
         const indexOfTodoItemToMove = todoItems.indexOf(todoItemToMove);
 
+        // if (moveButton.dataset.movetodoindirection === 'up') {
+        //     todoItems.sort((a, b): number => {
+        //         return a.id === buttonId;
+        //     });
+        // }
+
         if (moveButton.dataset.movetodoindirection === 'up')
             todoItems = swapArrayElementPositions(todoItems, indexOfTodoItemToMove, indexOfTodoItemToMove - 1);
         else if (moveButton.dataset.movetodoindirection === 'down')
             todoItems = swapArrayElementPositions(todoItems, indexOfTodoItemToMove, indexOfTodoItemToMove + 1);
+
     }
 
     return { init };

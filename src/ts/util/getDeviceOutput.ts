@@ -11,5 +11,3 @@ export default function getDeviceOutput(windowWidth: number): DeviceOutputType {
 
     return 'desktop';
 }
-
-module.exports = getDeviceOutput;
