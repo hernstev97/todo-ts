@@ -1,4 +1,4 @@
-import { MovingDirectionType } from "../../types/MovingDirectionType";
+import { MovingDirectionType } from "../../../../types/MovingDirectionType";
 
 export default function moveButton(id: string, direction: MovingDirectionType) {
     return `

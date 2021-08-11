@@ -1,9 +1,8 @@
-import { getFontSizeREM } from "../src/ts/util/setFontSizeForEachTodo";
+import { getFontSizeREM } from "./setFontSizeForEachTodo";
 const text50 = 'Lorem ipsum dolor sit amet, consetetur sadipscing ';
 const text100 = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut l';
 const text150 = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam volu';
 const p = document.createElement('p')
-// p.style.fontSize = '1rem';
 
 describe('returns a string containing a fontsize in rem based on text length and deviceoutput', () => {
     test('mobile 50 characters', () => {

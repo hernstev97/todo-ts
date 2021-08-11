@@ -1,4 +1,4 @@
-import validateInput from "../src/ts/util/validateInput";
+import validateInput from "./validateInput";
 
 describe('takes a string and validates it through several criteria', () => {
     test('string has no length', () => {

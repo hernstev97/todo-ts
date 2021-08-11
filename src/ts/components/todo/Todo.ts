@@ -1,14 +1,19 @@
 import TodoItem from "../../interfaces/TodoItem";
-import allItemsRemoveButtonVisibilityHandler from "../../util/allItemsRemoveButtonVisibilityHandler";
-import { assignBulkEventListeners } from "../../util/assignBulkEventListeners";
-import setFontSizeForEachTodo from "../../util/setFontSizeForEachTodo";
-import getDeviceOutput from "../../util/getDeviceOutput";
-import { setLocalStorage, getLocalStorage } from "../../util/localStorageUtility";
-import addTodoElementToDom from "../../util/todoDomElementGeneration/addElementToDom";
-import { setDisabledAttribute, removeDisabledAttribute } from "../../util/disabledAttributeUtility";
-import swapArrayElementPositions from "../../util/swapArrayElementPositions";
-import getUniqueId from "../../util/uniqueId";
-import validateInput from "../../util/validateInput";
+import allItemsRemoveButtonVisibilityHandler from "./utils/allItemsRemoveButtonVisibilityHandler";
+import {assignBulkEventListeners} from "../../util/assignBulkEventListeners";
+import setFontSizeForEachTodo from "./utils/setFontSizeForEachTodo/setFontSizeForEachTodo";
+import getDeviceOutput from "../../util/getDeviceOutput/getDeviceOutput";
+import { getLocalStorage, setLocalStorage } from "../../util/localStorageUtility";
+import addTodoElementToDom from "./utils/todoDomElementGeneration/addElementToDom";
+import { removeDisabledAttribute, setDisabledAttribute } from "../../util/disabledAttributeUtility";
+import getUniqueId from "../../util/uniqueId/uniqueId";
+import validateInput from "../../util/validateInput/validateInput";
+import { renderAllTodos } from "./utils/renderAllTodos";
+import { getTodoItemById } from "./utils/getTodoItemById";
+import {handleCheckboxChange, handleTodoCompletion} from './checkbox/checkbox'
+import {getElementId} from "./utils/getElementId/getElementId";
+import {swapTodoIndexByDirection} from "./utils/swapTodoIndexByDirection/swapTodoIndexByDirection";
+import {getSelectedDirection} from "./utils/getSelectedDirection/getSelectedDirection";
 
 export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
@@ -33,6 +38,7 @@ export const todo = () => {
     let selectedEditableTodoItem: TodoItem | undefined;
     let currentlyEditedTitle: Element;
 
+    // const deleteEvent = new CustomEvent('delete')
     const init = () => {
         buildTodosFromLocalStorage();
         setInteractionElements();
@@ -40,8 +46,6 @@ export const todo = () => {
         setDisabledSortButtons();
         bindEvents();
         setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
-
-        console.log("getUniqueId()", getUniqueId())
     }
 
     const bindEvents = () => {
@@ -51,9 +55,13 @@ export const todo = () => {
 
         removeAllItemsButton.addEventListener('click', handleDeleteAllButtonClick);
 
-        assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
+        assignBulkEventListeners(todoDoneCheckboxList, 'change', handleCheckboxChange);
+
+        assignBulkEventListeners(todoDoneCheckboxList, 'toggleComplete', handleTodoCompletion);
 
         assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo);
+
+        // deleteSingleTodoButtonList[0].addEventListener('delete', deleteTest as EventListener)
 
         assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo);
 
@@ -75,7 +83,7 @@ export const todo = () => {
     const buildTodosFromLocalStorage = () => {
         const todoItemsFromStorage = getLocalStorage('todoItems');
         todoItems = todoItemsFromStorage === undefined ? [] : todoItemsFromStorage;
-        renderAllTodos(todoItems);
+        renderAllTodos(todoItems, todoList);
     }
 
     const setInteractionElements = () => {
@@ -86,18 +94,7 @@ export const todo = () => {
         todoTitleList = Array.from(componentRoot.querySelectorAll('[data-todo="todoTitle"]')) as HTMLDivElement[];
     }
 
-    const renderAllTodos = (todos: TodoItem[]) => {
-        todoList.innerHTML = '';
-        todos.forEach(item => {
-            addTodoElementToDom({
-                id: item.id,
-                title: item.title,
-                completed: item.completed,
-            });
-        });
-    }
-
-    // adding a todoItem
+    // todo needs to be in here
     const setInputState = (event: Event) => {
         const input = event?.target as HTMLInputElement;
         inputState = input.value ?? '';
@@ -120,21 +117,27 @@ export const todo = () => {
         inputState = '';
     }
 
+    // todo doesnt need to be in here
     const createNewTodoDOMElement = () => {
         const indexForNewItem = todoItems.length - 1
         const newTodo = todoItems[indexForNewItem];
+
         addTodoElementToDom({
             id: uniqueIdForThisTodo,
             title: newTodo.title,
             completed: newTodo.completed,
         });
-
         setInteractionElements();
-        todoDoneCheckboxList[indexForNewItem].addEventListener('change', toggleTodoComplete)
-        deleteSingleTodoButtonList[indexForNewItem].addEventListener('click', handleDeleteTodo)
-        todoTitleList[indexForNewItem].addEventListener('dblclick', handleEditTodoLabel);
+        giveNewTodoEventListeners(newTodo, indexForNewItem)
+    }
+
+    // todo doesnt need to be in here?
+    const giveNewTodoEventListeners = (newTodo: TodoItem, index: number) => {
+        todoDoneCheckboxList[index].addEventListener('change', handleTodoCompletion)
+        deleteSingleTodoButtonList[index].addEventListener('click', handleDeleteTodo)
+        todoTitleList[index].addEventListener('dblclick', handleEditTodoLabel);
         moveTodoInDirectionButtonList.forEach(button => {
-            if (button.getAttribute('data-id') === newTodo.id)
+            if (getElementId(button) === newTodo.id)
                 button.addEventListener('click', handleMoveTodo);
         })
     }
@@ -150,25 +153,25 @@ export const todo = () => {
     }
 
     // completing a todoItem
-    const toggleTodoComplete = (event: Event) => {
-        const element = event.currentTarget as HTMLElement;
-        const id = element.dataset.id;
-        const currentTodo = todoItems.find(item => item.id === id);
-        const parent = element.parentElement?.parentElement;
-
-        if (currentTodo === undefined) return;
-
-        if (parent) {
-            currentTodo.completed = !currentTodo.completed;
-
-            if (currentTodo.completed)
-                parent.classList.add('todo--completed');
-            else
-                parent.classList.remove('todo--completed');
-        }
-
-        setLocalStorage('todoItems', todoItems);
-    }
+    // const toggleTodoComplete = (event: Event) => {
+    //     const element = event.currentTarget as HTMLElement;
+    //     const id = element.dataset.id;
+    //     const currentTodo = getTodoItemById(id);
+    //     const parent = element.parentElement?.parentElement;
+    //
+    //     if (currentTodo === undefined) return;
+    //
+    //     if (parent) {
+    //         currentTodo.completed = !currentTodo.completed;
+    //
+    //         if (currentTodo.completed)
+    //             parent.classList.add('todo--completed');
+    //         else
+    //             parent.classList.remove('todo--completed');
+    //     }
+    //
+    //     setLocalStorage('todoItems', todoItems);
+    // }
 
     // deleting all todoItems
     const deleteAllTodos = (event: Event) => {
@@ -192,8 +195,8 @@ export const todo = () => {
         event.preventDefault();
         const target = event.currentTarget as HTMLButtonElement;
         const id = target.dataset.id;
-        const parent = Array.from(todoElementNodeList).find(todo => todo.getAttribute('data-id') === id);
-        const toDeleteTodo = todoItems.find(item => item.id === id);
+        const parent = Array.from(todoElementNodeList).find(todo => getElementId(todo) === id);
+        const toDeleteTodo = getTodoItemById(todoItems, id);
         const toDeleteTodoIndex = toDeleteTodo ? todoItems.indexOf(toDeleteTodo) : -1;
 
         for (let todoIndex = 0; todoIndex < todoItems.length; todoIndex++) {
@@ -212,10 +215,35 @@ export const todo = () => {
     }
 
     const handleDeleteTodo = (event: Event) => {
+        // deleteSingleTodoButtonList[0].dispatchEvent(deleteEvent)
         deleteSingleTodo(event)
         setDisabledSortButtons();
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
     }
+
+    // const deleteTest = (event: CustomEvent<Record<string, string | [] | {}>>) => {
+    //     const deletable = event.target as Element;
+    //     const deleteId = getElementId(deletable);
+    //     // @ts-ignore todo why does path not exist on CustomEvent?
+    //     const parent = event.path[3];
+    //     const toDeleteTodo = getTodoItemById(deleteId);
+    //     const toDeleteTodoIndex = toDeleteTodo ? todoItems.indexOf(toDeleteTodo) : -1;
+    //
+    //     for (let todoIndex = 0; todoIndex < todoItems.length; todoIndex++) {
+    //         if (todoIndex === toDeleteTodoIndex)
+    //             todoItems.splice(todoIndex, 1);
+    //     }
+    //
+    //     if (parent) parent.remove();
+    //
+    //     setLocalStorage('todoItems', todoItems);
+    //     todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
+    //
+    //     if (todoItems.length === 0) {
+    //         uniqueIdForThisTodo = '';
+    //     }
+    //     console.log('lol', event, deletable, parent, deleteId);
+    // }
 
     // editing a todoItem
     const handleEditTodoLabel = (event: Event) => {
@@ -224,8 +252,8 @@ export const todo = () => {
         modifiedTodoItems = Array.from(todoItems)
         const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;
         const parent = currentlyEditedTitle?.parentElement?.parentElement;
-        currentTodoId = parent ? parent.getAttribute('data-id') : '';
-        selectedEditableTodoItem = todoItems.find(todo => todo.id === currentTodoId);
+        currentTodoId = parent ? getElementId(parent) : '';
+        selectedEditableTodoItem = getTodoItemById(todoItems, currentTodoId);
 
         if (editTodoInput && selectedEditableTodoItem) {
             indexOfEditableTodoItem = todoItems.indexOf(selectedEditableTodoItem);
@@ -234,10 +262,12 @@ export const todo = () => {
             editTodoInput.addEventListener('input', setInputState);
             editTodoInput.addEventListener('keydown', handleEditSubmit);
             editTodoInput.addEventListener('keyup', (event) => {
-                if (event.key === "Escape" || event.key === "Enter")
+                if (event.key === "Enter")
                     removeEditInput(editTodoInput);
+                if (event.key === "Escape")
+                    cancelEdit(editTodoInput);
             });
-            editTodoInput.addEventListener('blur', () => { removeEditInput(editTodoInput) });
+            editTodoInput.addEventListener('blur', () => { cancelEdit(editTodoInput); });
         }
     }
 
@@ -267,7 +297,11 @@ export const todo = () => {
         }
     }
 
-    // moving a todoItem with buttons
+    const cancelEdit = (input: HTMLInputElement) => {
+        input.value = currentlyEditedTitle.querySelector('p')?.textContent as string;
+        removeEditInput(input);
+    }
+
     const setDisabledSortButtons = () => {
         if (todoItems.length > 0) {
             const firstTodo = todoElementNodeList[0];
@@ -281,9 +315,10 @@ export const todo = () => {
         }
     }
 
+    // moving
     const handleMoveTodo = (event: Event) => {
-        moveTodo(event);
-        renderAllTodos(todoItems);
+        moveTodoInDirection(event);
+        renderAllTodos(todoItems, todoList);
         setInteractionElements();
         setDisabledSortButtons();
         setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
@@ -291,7 +326,7 @@ export const todo = () => {
         // here all listeners for elements inside a todoElement have to be set again
         // because within the renderAllTodos function the innerHTML of the todolist ist emptied
         // which deletes all listeners as well
-        assignBulkEventListeners(todoDoneCheckboxList, 'change', toggleTodoComplete);
+        assignBulkEventListeners(todoDoneCheckboxList, 'change', handleTodoCompletion);
         assignBulkEventListeners(deleteSingleTodoButtonList, 'click', handleDeleteTodo);
         assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', handleMoveTodo);
         assignBulkEventListeners(todoTitleList, 'dblclick', handleEditTodoLabel);
@@ -299,24 +334,30 @@ export const todo = () => {
         setLocalStorage('todoItems', todoItems);
     }
 
-    const moveTodo = (event: Event) => {
+    const moveTodoInDirection = (event: Event) => {
         const moveButton = event.currentTarget as HTMLButtonElement;
-        const buttonId = moveButton.getAttribute('data-id');
-        const todoItemToMove = todoItems.find(item => item.id === buttonId) as TodoItem;
+        // todo find a way to find the index easier
+        const buttonId = getElementId(moveButton);
+        const todoItemToMove = getTodoItemById(todoItems, buttonId) as TodoItem;
         const indexOfTodoItemToMove = todoItems.indexOf(todoItemToMove);
 
-        // if (moveButton.dataset.movetodoindirection === 'up') {
-        //     todoItems.sort((a, b): number => {
-        //         return a.id === buttonId;
-        //     });
-        // }
-
-        if (moveButton.dataset.movetodoindirection === 'up')
-            todoItems = swapArrayElementPositions(todoItems, indexOfTodoItemToMove, indexOfTodoItemToMove - 1);
-        else if (moveButton.dataset.movetodoindirection === 'down')
-            todoItems = swapArrayElementPositions(todoItems, indexOfTodoItemToMove, indexOfTodoItemToMove + 1);
-
+        if (getSelectedDirection(moveButton, 'up'))
+            todoItems = swapTodoIndexByDirection(todoItems, indexOfTodoItemToMove, 'up')
+        else if (getSelectedDirection(moveButton, 'down'))
+            todoItems = swapTodoIndexByDirection(todoItems, indexOfTodoItemToMove, 'down')
     }
+
+    // todo try getting a better name
+    /* todo add following custom events:
+    *   delete: click on delete button on a single todoElement
+    *   sort: click on any of the two sort buttons on a single todoElement
+    *   edit: double click on the label of a single todoElement
+    *   complete: click on the checkbox of a single todoElement
+    * */
+
+    // todo: every function should only do one thing
+    // todo: functions should contain statements at the same level
+    //  so low-level statements and high-level statements should not be in one function
 
     return { init };
 }

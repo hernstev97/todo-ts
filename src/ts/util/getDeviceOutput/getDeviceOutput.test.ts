@@ -1,4 +1,4 @@
-import getDeviceOutput from "../src/ts/util/getDeviceOutput";
+import getDeviceOutput from "./getDeviceOutput";
 
 describe('returns a string with the name of the current device type based on resolution', () => {
     test('mobile', () => {
