@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
     "start": "npm run build && npm-run-all --parallel watch serve",
     "build": "webpack",
     "watch": "webpack --watch",

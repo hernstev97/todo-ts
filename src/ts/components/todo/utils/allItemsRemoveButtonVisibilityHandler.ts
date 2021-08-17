@@ -1,4 +1,4 @@
-import TodoItem from "../../../interfaces/TodoItem";
+import TodoItem from "../interfaces/TodoItem";
 
 export default function allItemsRemoveButtonVisibilityHandler(todoItems: TodoItem[], button: HTMLButtonElement) {
     if (todoItems !== undefined && todoItems.length === 0)

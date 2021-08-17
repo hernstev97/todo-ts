@@ -1,16 +1,20 @@
+import {LocalStorageKeys} from "../../enums/LocalStorageKeysEnum";
+import {getLocalStorage, setLocalStorage} from "../localStorageUtility";
+
 export default function getUniqueId(): string {
+    allIds = getLocalStorage(LocalStorageKeys.UIDS);
     const alphabet: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
     const randomNumber = Math.floor(floorRandomNumber(Math.random() * Date.now()));
     const randomNumberAsString = randomNumber.toString();
-    // todo dont solve it like this
-    // todo this way it depends on usage within an html document
-    const doc = document.documentElement.innerHTML;
-    let uniqueId = generateRandomString(randomNumberAsString, alphabet);
+    let uniqueId = `uid#${generateRandomString(randomNumberAsString, alphabet)}`;
 
-    while (doc.includes(`uid#${uniqueId}`))
-        uniqueId = generateRandomString(randomNumberAsString, alphabet);
+    while (allIds.some(id => id === uniqueId)) {
+        uniqueId = `uid#${generateRandomString(randomNumberAsString, alphabet)}`;
+    }
+    allIds.push(uniqueId);
+    setLocalStorage(LocalStorageKeys.UIDS, allIds)
 
-    return `uid#${uniqueId}`;
+    return uniqueId;
 }
 
 // to make reading a bit easier
@@ -27,3 +31,5 @@ const generateRandomString = (randomNumberAsString: string, alphabet: string[]) 
 
     return uid.substring(0, Math.min(uid.length, 10));
 }
+
+let allIds: string[] = [];

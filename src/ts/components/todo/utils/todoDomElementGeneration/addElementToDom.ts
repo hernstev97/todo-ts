@@ -1,4 +1,4 @@
-import TodoItem from "../../../../interfaces/TodoItem";
+import TodoItem from "../../interfaces/TodoItem";
 import moveButton from "./moveButton";
 import todoTitle from "./todoTitle";
 import moveGrabber from "./moveGrabber";

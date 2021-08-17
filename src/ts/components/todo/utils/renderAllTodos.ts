@@ -1,4 +1,4 @@
-import TodoItem from "../../../interfaces/TodoItem";
+import TodoItem from "../interfaces/TodoItem";
 import addTodoElementToDom from "./todoDomElementGeneration/addElementToDom";
 
 export const renderAllTodos = (todos: TodoItem[], todoList: HTMLDivElement) => {
