@@ -15,6 +15,7 @@ let indexOfEditableTodoItem: number;
 let selectedEditableTodoItem: TodoItem | undefined;
 let currentlyEditedTitle: Element;
 let todoElementNodeList: NodeListOf<Element>;
+const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
 
 const editEvent = new CustomEvent(CustomTodoEvents.EDIT)
 
@@ -56,6 +57,7 @@ const removeEditInput = (input: HTMLInputElement) => {
 
 const handleEditSubmit = (event: Event | KeyboardEvent) => {
     let todoItems: TodoItem[] = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
+    todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
     const { key } = event as KeyboardEvent;
     const todoLabel = currentlyEditedTitle.querySelector('p');
     const editTodoInput = currentlyEditedTitle.querySelector('[data-todo="editTodoInput"]') as HTMLInputElement;

@@ -24,25 +24,20 @@ export const dispatchMoveTodoEvent = (event: Event | MouseEvent | CustomEvent) =
 
 // todo currently does not work
 export const handleMoveTodo = (event: Event) => {
-    const todoItems: TodoItem[] = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
     const todoList = componentRoot.querySelector('[data-todo="todoList"]') as HTMLDivElement
     let todoElementNodeList: NodeListOf<Element> = componentRoot.querySelectorAll('[data-todo="todoItem"]');
     console.log("moved single")
     moveTodoInDirection(event);
-    renderAllTodos(todoItems, todoList);
+    renderAllTodos(getLocalStorage(LocalStorageKeys.TODO_ITEMS), todoList);
     document.dispatchEvent(setInteractionElementsEvent)
     document.dispatchEvent(setDisabledSortButtonsEvent)
     setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
-
-    console.log("move", todoItems)
 
     // here all listeners for elements inside a todoElement have to be set again
     // because within the renderAllTodos function the innerHTML of the todolist ist emptied
     // which deletes all listeners as well
     document.dispatchEvent(bindEventsTodoSpecificEvent);
-
-    setLocalStorage(LocalStorageKeys.TODO_ITEMS, todoItems);
 }
 
 const moveTodoInDirection = (event: Event) => {
