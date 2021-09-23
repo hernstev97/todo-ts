@@ -1,8 +1,10 @@
 import {LocalStorageKeys} from "../../enums/LocalStorageKeysEnum";
 import {getLocalStorage, setLocalStorage} from "../localStorageUtility";
 
+let allIds: string[] = [];
+
 export default function getUniqueId(): string {
-    allIds = getLocalStorage(LocalStorageKeys.UIDS);
+    allIds = getLocalStorage(LocalStorageKeys.UIDS) ?? [];
     const alphabet: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
     const randomNumber = Math.floor(floorRandomNumber(Math.random() * Date.now()));
     const randomNumberAsString = randomNumber.toString();
@@ -31,5 +33,3 @@ const generateRandomString = (randomNumberAsString: string, alphabet: string[]) 
 
     return uid.substring(0, Math.min(uid.length, 10));
 }
-
-let allIds: string[] = [];

@@ -1,39 +1,25 @@
 import TodoItem from "./interfaces/TodoItem";
 import allItemsRemoveButtonVisibilityHandler from "./utils/allItemsRemoveButtonVisibilityHandler";
-import { assignBulkEventListeners } from "../../util/assignBulkEventListeners";
 import setFontSizeForEachTodo from "./utils/setFontSizeForEachTodo/setFontSizeForEachTodo";
 import getDeviceOutput from "../../util/getDeviceOutput/getDeviceOutput";
-import { getLocalStorage, setLocalStorage } from "../../util/localStorageUtility";
-import addTodoElementToDom from "./utils/todoDomElementGeneration/addElementToDom";
-import getUniqueId from "../../util/uniqueId/uniqueId";
-import validateInput from "../../util/validateInput/validateInput";
-import { renderAllTodos } from "./utils/renderAllTodos";
-import { dispatchTodoCompletionEvent, handleTodoCompletion } from './functions/complete/complete'
+import { getLocalStorage } from "../../util/localStorageUtility";
+import { renderAllTodos } from "./utils/renderAllTodos/renderAllTodos";
+import { remove } from "./functions/remove/remove";
+import { setDisabledSortButtons } from "./utils/setDisabledSortButtons/setDisabledSortButtons";
+import { LocalStorageKeys } from "../../enums/LocalStorageKeysEnum";
+import { CustomTodoEvents } from "./enums/CustomTodoEventsEnum";
 import {
-    dispatchRemoveSingleTodoEvent,
+    bindEventsTodoSpecificEvent,
+    setDisabledSortButtonsEvent,
     dispatchRemoveAllTodoEvent,
-    remove} from "./functions/remove/remove";
-import {setDisabledSortButtons} from "./utils/setDisabledSortButtons/setDisabledSortButtons";
-import {LocalStorageKeys} from "../../enums/LocalStorageKeysEnum";
-import {dispatchMoveTodoEvent, handleMoveTodo} from "./functions/moving/moving";
-import {dispatchEditTodoEvent, handleEditTodoLabel} from "./functions/edit/edit";
-import {CustomTodoEvents} from "./enums/CustomTodoEventsEnum";
-import {getElementId} from "./utils/getElementId/getElementId";
-
-export const setInteractionElementsEvent = new CustomEvent(CustomTodoEvents.SET_INTERACTION_ELEMENTS)
-export const setDisabledSortButtonsEvent = new CustomEvent(CustomTodoEvents.SET_DISABLED_SORT_BUTTONS)
-export const bindEventsTodoSpecificEvent = new CustomEvent(CustomTodoEvents.BIND_EVENTS)
-export const setInputStateEvent = new CustomEvent(CustomTodoEvents.SET_INPUT_STATE)
-
-// todo move out of this file
-export const dispatchSetInputState = (event: Event) => {
-    event.currentTarget?.dispatchEvent(setInputStateEvent);
-}
+    fireGlobalEvent, addTodoEvent,
+} from "./events/CustomEvents";
+import { bindTodoSpecificEvents } from "./utils/bindTodoSpecificEvents/bindTodoSpecificEvents";
+import { handleFormSubmit } from "./functions/add/add";
 
 export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
     const removeAllItemsButton = componentRoot.querySelector('[data-todo="removeAllItemsButton"]') as HTMLButtonElement;
-    const addTodoTextInput = componentRoot.querySelector('[data-todo="addTodoTextInput"]') as HTMLInputElement;
     const addTodoFormElement = componentRoot.querySelector('[data-todo="addTodoForm"]') as HTMLFormElement;
     const todoList = componentRoot.querySelector('[data-todo="todoList"]') as HTMLDivElement
     let todoElementNodeList: NodeListOf<Element>;
@@ -41,9 +27,7 @@ export const todo = () => {
     let deleteSingleTodoButtonList: HTMLButtonElement[];
     let moveTodoInDirectionButtonList: HTMLButtonElement[];
     let todoTitleList: HTMLDivElement[];
-    // general
     let todoItems: TodoItem[] = [];
-    let inputState: string = '';
     let timeout: number;
     let uniqueIdForThisTodo: string = '';
 
@@ -51,21 +35,41 @@ export const todo = () => {
         buildTodosFromLocalStorage();
         setInteractionElements();
         bindEvents();
-        document.dispatchEvent(setDisabledSortButtonsEvent);
+        fireGlobalEvent(setDisabledSortButtonsEvent);
         allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
         setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
+    }
+
+    const buildTodosFromLocalStorage = () => {
+        const todoItemsFromStorage = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
+        todoItems = todoItemsFromStorage === undefined ? [] : todoItemsFromStorage;
+        renderAllTodos(todoItems, todoList);
+    }
+
+    const setInteractionElements = () => {
+        todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
+        todoDoneCheckboxList = Array.from(componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]')) as HTMLInputElement[];
+        deleteSingleTodoButtonList = Array.from(componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]')) as HTMLButtonElement[];
+        moveTodoInDirectionButtonList = Array.from(componentRoot.querySelectorAll('[data-moveTodoInDirection]')) as HTMLButtonElement[];
+        todoTitleList = Array.from(componentRoot.querySelectorAll('[data-todo="todoTitle"]')) as HTMLDivElement[];
     }
 
     const bindEvents = () => {
         document.addEventListener(CustomTodoEvents.SET_INTERACTION_ELEMENTS, setInteractionElements)
         document.addEventListener(CustomTodoEvents.SET_DISABLED_SORT_BUTTONS, setDisabledSortButtons)
-        document.addEventListener(CustomTodoEvents.BIND_EVENTS, bindTodoSpecificEvents)
+        document.addEventListener(CustomTodoEvents.BIND_EVENTS, () => {
+            bindTodoSpecificEvents({
+                doneCheckboxList: todoDoneCheckboxList,
+                deleteButtonList: deleteSingleTodoButtonList,
+                moveInDirectionButtonList: moveTodoInDirectionButtonList,
+                titleList: todoTitleList
+            })
+        })
 
-        document.dispatchEvent(bindEventsTodoSpecificEvent);
+        fireGlobalEvent(bindEventsTodoSpecificEvent);
 
-        addTodoTextInput.addEventListener( 'input', dispatchSetInputState);
-        addTodoTextInput.addEventListener(CustomTodoEvents.SET_INPUT_STATE, setInputState)
-        addTodoFormElement.addEventListener('submit', handleFormSubmit);
+        addTodoFormElement.addEventListener('submit', addTodoEvent);
+        addTodoFormElement.addEventListener(CustomTodoEvents.ADD, handleFormSubmit);
 
         removeAllItemsButton.addEventListener('click', dispatchRemoveAllTodoEvent);
         removeAllItemsButton.addEventListener(CustomTodoEvents.REMOVE_ALL, remove().removeAll);
@@ -83,108 +87,7 @@ export const todo = () => {
         });
     }
 
-    const bindTodoSpecificEvents = () => {
-        // delete
-        assignBulkEventListeners(deleteSingleTodoButtonList, 'click', dispatchRemoveSingleTodoEvent);
-        assignBulkEventListeners(deleteSingleTodoButtonList, CustomTodoEvents.REMOVE_SINGLE, remove().removeSingle);
-
-        // complete
-        assignBulkEventListeners(todoDoneCheckboxList, 'change', dispatchTodoCompletionEvent);
-        assignBulkEventListeners(todoDoneCheckboxList, CustomTodoEvents.TOGGLE_COMPLETE, handleTodoCompletion);
-
-        // move/sort
-        assignBulkEventListeners(moveTodoInDirectionButtonList, 'click', dispatchMoveTodoEvent);
-        assignBulkEventListeners(moveTodoInDirectionButtonList, CustomTodoEvents.MOVE, handleMoveTodo);
-
-        // edit
-        assignBulkEventListeners(todoTitleList, 'dblclick', dispatchEditTodoEvent);
-        assignBulkEventListeners(todoTitleList, CustomTodoEvents.EDIT, handleEditTodoLabel);
-    }
-
-    // todo needs to be in here
-    // general functions
-    const buildTodosFromLocalStorage = () => {
-        const todoItemsFromStorage = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
-        todoItems = todoItemsFromStorage === undefined ? [] : todoItemsFromStorage;
-        renderAllTodos(todoItems, todoList);
-    }
-
-    // todo needs to be in here
-    const setInteractionElements = () => {
-        console.log("set interaction elements");
-        todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
-        todoDoneCheckboxList = Array.from(componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]')) as HTMLInputElement[];
-        deleteSingleTodoButtonList = Array.from(componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]')) as HTMLButtonElement[];
-        moveTodoInDirectionButtonList = Array.from(componentRoot.querySelectorAll('[data-moveTodoInDirection]')) as HTMLButtonElement[];
-        todoTitleList = Array.from(componentRoot.querySelectorAll('[data-todo="todoTitle"]')) as HTMLDivElement[];
-    }
-
-    // todo needs to be in here
-    const setInputState = (event: Event) => {
-        const input = event?.target as HTMLInputElement;
-        inputState = input.value ?? '';
-    }
-
-    const addTodoItem = () => {
-        if (addTodoTextInput.value.length === 0) return;
-        todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
-        uniqueIdForThisTodo = getUniqueId();
-
-        const todoItem: TodoItem = {
-            id: uniqueIdForThisTodo,
-            title: inputState,
-            completed: false,
-        }
-
-        todoItems.push(todoItem);
-        setLocalStorage(LocalStorageKeys.TODO_ITEMS, todoItems);
-        addTodoTextInput.value = '';
-        inputState = '';
-    }
-
-    // todo doesnt need to be in here
-    const createNewTodoDOMElement = () => {
-        const indexForNewItem = todoItems.length - 1
-        const newTodo = todoItems[indexForNewItem];
-
-        addTodoElementToDom({
-            id: uniqueIdForThisTodo,
-            title: newTodo.title,
-            completed: newTodo.completed,
-        });
-        document.dispatchEvent(setInteractionElementsEvent)
-        giveNewTodoEventListeners(newTodo, indexForNewItem)
-    }
-
-    // todo doesnt need to be in here?
-    const giveNewTodoEventListeners = (newTodo: TodoItem, index: number) => {
-        todoDoneCheckboxList[index].addEventListener('change', dispatchTodoCompletionEvent);
-        todoDoneCheckboxList[index].addEventListener(CustomTodoEvents.TOGGLE_COMPLETE, handleTodoCompletion);
-
-        deleteSingleTodoButtonList[index].addEventListener('click', dispatchRemoveSingleTodoEvent)
-        deleteSingleTodoButtonList[index].addEventListener(CustomTodoEvents.REMOVE_SINGLE, remove().removeSingle)
-
-        todoTitleList[index].addEventListener('dblclick', dispatchEditTodoEvent);
-        todoTitleList[index].addEventListener(CustomTodoEvents.EDIT, handleEditTodoLabel);
-
-        moveTodoInDirectionButtonList.forEach(button => {
-            if (getElementId(button) === newTodo.id) {
-                button.addEventListener('click', dispatchMoveTodoEvent);
-                button.addEventListener(CustomTodoEvents.MOVE, handleMoveTodo);
-            }
-        })
-    }
-
-    const handleFormSubmit = (event: Event) => {
-        event.preventDefault();
-        if (validateInput(inputState)) {
-            addTodoItem();
-            createNewTodoDOMElement();
-            allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-            document.dispatchEvent(setDisabledSortButtonsEvent);
-        }
-    }
-
+    // @TODO might not be needed in here
     const removeCleanUp = () => {
         todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
 

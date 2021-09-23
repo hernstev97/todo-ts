@@ -1,13 +1,14 @@
-import {getElementId} from "../../utils/getElementId/getElementId";
-import {getTodoItemById} from "../../utils/getTodoItemById";
+import { getElementId } from "../../utils/getElementId/getElementId";
+import { getTodoItemById } from "../../utils/getTodoItemById/getTodoItemById";
 import validateInput from "../../../../util/validateInput/validateInput";
-import {getLocalStorage, setLocalStorage} from "../../../../util/localStorageUtility";
+import { getLocalStorage, setLocalStorage } from "../../../../util/localStorageUtility";
 import setFontSizeForEachTodo from "../../utils/setFontSizeForEachTodo/setFontSizeForEachTodo";
 import getDeviceOutput from "../../../../util/getDeviceOutput/getDeviceOutput";
 import TodoItem from "../../interfaces/TodoItem";
-import {LocalStorageKeys} from "../../../../enums/LocalStorageKeysEnum";
-import {dispatchSetInputState} from "../../Todo";
-import {CustomTodoEvents} from "../../enums/CustomTodoEventsEnum";
+import { LocalStorageKeys } from "../../../../enums/LocalStorageKeysEnum";
+import { dispatchSetInputState } from "../../events/CustomEvents";
+import { removeEditInput } from "./removeEditInput/removeEditInput";
+import { cancelEdit } from "./cancelEdit/cancelEdit";
 
 let currentTodoId: string | null;
 let modifiedTodoItems: TodoItem[] = [];
@@ -17,12 +18,7 @@ let currentlyEditedTitle: Element;
 let todoElementNodeList: NodeListOf<Element>;
 const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
 
-const editEvent = new CustomEvent(CustomTodoEvents.EDIT)
-
-export const dispatchEditTodoEvent = (event: Event | MouseEvent | CustomEvent) => {
-    event.currentTarget?.dispatchEvent(editEvent)
-}
-
+// @CLEANUP clean up file
 export const handleEditTodoLabel = (event: Event) => {
     const todoItems: TodoItem[] = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
     currentlyEditedTitle = event.currentTarget as Element;
@@ -37,25 +33,20 @@ export const handleEditTodoLabel = (event: Event) => {
         indexOfEditableTodoItem = todoItems.indexOf(selectedEditableTodoItem);
         editTodoInput.focus();
         editTodoInput.setSelectionRange(editTodoInput.value.length, editTodoInput.value.length);
+
         editTodoInput.addEventListener( 'input', dispatchSetInputState);
         editTodoInput.addEventListener('keydown', handleEditSubmit);
         editTodoInput.addEventListener('keyup', (event) => {
             if (event.key === "Enter")
-                removeEditInput(editTodoInput);
+                removeEditInput(editTodoInput, currentlyEditedTitle);
             if (event.key === "Escape")
-                cancelEdit(editTodoInput);
+                cancelEdit(editTodoInput, currentlyEditedTitle);
         });
-        editTodoInput.addEventListener('blur', () => { cancelEdit(editTodoInput); });
+        editTodoInput.addEventListener('blur', () => { cancelEdit(editTodoInput, currentlyEditedTitle); });
     }
 }
 
-const removeEditInput = (input: HTMLInputElement) => {
-    currentlyEditedTitle.classList.remove('todo__title--edit');
-    input.removeEventListener('keydown', handleEditSubmit);
-    input.removeEventListener('input', dispatchSetInputState);
-}
-
-const handleEditSubmit = (event: Event | KeyboardEvent) => {
+export const handleEditSubmit = (event: Event | KeyboardEvent) => {
     let todoItems: TodoItem[] = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
     todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
     const { key } = event as KeyboardEvent;
@@ -75,9 +66,4 @@ const handleEditSubmit = (event: Event | KeyboardEvent) => {
         setLocalStorage(LocalStorageKeys.TODO_ITEMS, todoItems);
         setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
     }
-}
-
-const cancelEdit = (input: HTMLInputElement) => {
-    input.value = currentlyEditedTitle.querySelector('p')?.textContent as string;
-    removeEditInput(input);
 }

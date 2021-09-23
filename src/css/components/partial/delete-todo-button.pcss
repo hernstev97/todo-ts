@@ -5,7 +5,7 @@
     background-position: center center;
     width: 1.5rem;
     height: 1.5rem;
-    background-color: black;
+    background-color: var(--black);
     position: relative;
     border-radius: 1.5rem;
     cursor: pointer;
@@ -17,7 +17,7 @@
         display: inline-block;
         width: 15px;
         height: 3px;
-        background-color: white;
+        background-color: var(--white);
         border-radius: 3px;
         position: absolute;
         left: 50%;
@@ -26,22 +26,22 @@
     }
 
     &::before {
-        transform: translate(-50%, -50%) rotate(135deg)
+        transform: translate(-50%, -50%) rotate(135deg);
     }
 
     &::after {
-        transform: translate(-50%, -50%) rotate(45deg)
+        transform: translate(-50%, -50%) rotate(45deg);
     }
 
     &:hover {
         background-color: var(--delete-red);
 
         &::before {
-            transform: translate(-50%, -50%) rotate(225deg)
+            transform: translate(-50%, -50%) rotate(225deg);
         }
 
         &::after {
-            transform: translate(-50%, -50%) rotate(135deg)
+            transform: translate(-50%, -50%) rotate(135deg);
         }
     }
 }
