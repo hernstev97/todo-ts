@@ -1,4 +1,15 @@
-.add-todo {
+.todo-app__header {
     display: flex;
     gap: 1rem;
+    position: fixed;
+    width: 100%;
+    max-width: calc(var(--breakpoint) - 2rem);
+    top: 0;
+    z-index: 20;
+    padding: 1rem 0;
+    background-color: var(--white);
+
+    h1 {
+        flex-grow: 2;
+    }
 }

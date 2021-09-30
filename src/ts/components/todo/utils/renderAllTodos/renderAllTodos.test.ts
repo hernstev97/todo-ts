@@ -16,9 +16,8 @@ const resultHTML: string =
             <input data-todo="todoCompletedCheckbox" type="checkbox" data-id="uid#7XXQ1c5eO1">  
             <div class="todo__title" data-todo="todoTitle">
                 <p class="todo__label">Testing Title</p>
-                <input data-todo="editTodoInput" class="todo__edit" type="text" value="Testing Title">
             </div>
-            <div class="todo__move-delete-wrapper">
+            <div class="todo__interaction-wrapper">
                 <button class="todo__move todo__move--up" data-id="uid#7XXQ1c5eO1" data-movetodoindirection="up">
                     <span></span>
                 </button>

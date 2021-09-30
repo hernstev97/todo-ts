@@ -1,4 +1,4 @@
-import { getLocalStorage } from "../../../../util/localStorageUtility";
+import { getLocalStorage } from "../../../../util/localStorage/localStorageUtility";
 import allItemsRemoveButtonVisibilityHandler from "../../utils/allItemsRemoveButtonVisibilityHandler";
 import { LocalStorageKeys } from "../../../../enums/LocalStorageKeysEnum";
 import { fireGlobalEvent, setDisabledSortButtonsEvent } from "../../events/CustomEvents";

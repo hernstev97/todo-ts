@@ -1,7 +1,10 @@
-export default function todoTitle(title: string) {
+export default function todoTitle(title: string, description?: string) {
+    const titleHTML = `<p class="todo__label">${title}</p>`;
+    const descriptionHTML = `<p class="todo__label todo__description">${description}</p>`;
+
     return `
         <div class="todo__title" data-todo="todoTitle">
-            <p class="todo__label">${title}</p>
-            <input data-todo="editTodoInput" class="todo__edit" type="text" value="${title}" />
+            ${titleHTML}
+            ${descriptionHTML}
         </div>`
 }

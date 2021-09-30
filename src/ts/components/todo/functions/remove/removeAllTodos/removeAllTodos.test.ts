@@ -14,7 +14,7 @@ const todoListBefore =
                     <p class="todo__label">1</p>
                     <input data-todo="editTodoInput" class="todo__edit" type="text" value="1">
                 </div>
-                <div class="todo__move-delete-wrapper">
+                <div class="todo__interaction-wrapper">
                     <button class="todo__move todo__move--up" data-id="uid#1au88E1O1n" data-movetodoindirection="up" disabled="">
                         <span></span>
                     </button>
@@ -32,7 +32,7 @@ const todoListBefore =
                     <p class="todo__label">2</p>
                     <input data-todo="editTodoInput" class="todo__edit" type="text" value="2">
                 </div>
-                <div class="todo__move-delete-wrapper">
+                <div class="todo__interaction-wrapper">
                     <button class="todo__move todo__move--up" data-id="uid#hkUMDh7L5Q" data-movetodoindirection="up">
                         <span></span>
                     </button>

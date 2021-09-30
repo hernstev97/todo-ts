@@ -1,58 +1,41 @@
-import validateInput from "../../../../util/validateInput/validateInput";
-import allItemsRemoveButtonVisibilityHandler
-    from "../../utils/allItemsRemoveButtonVisibilityHandler";
-import {
-    dispatchEditTodoEvent, dispatchMoveTodoEvent,
-    dispatchRemoveSingleTodoEvent, dispatchSetInputState,
-    dispatchTodoCompletionEvent,
-    fireGlobalEvent,
-    setDisabledSortButtonsEvent,
-    setInteractionElementsEvent
-} from "../../events/CustomEvents";
-import { getLocalStorage, setLocalStorage } from "../../../../util/localStorageUtility";
 import { LocalStorageKeys } from "../../../../enums/LocalStorageKeysEnum";
-import addTodoElementToDom from "../../utils/todoDomElementGeneration/addElementToDom";
+import { 
+    getLocalStorage, 
+    setLocalStorage 
+} from "../../../../util/localStorage/localStorageUtility";
 import getUniqueId from "../../../../util/uniqueId/uniqueId";
-import TodoItem from "../../interfaces/TodoItem";
+import validateInput from "../../../../util/validateInput/validateInput";
 import { CustomTodoEvents } from "../../enums/CustomTodoEventsEnum";
-import { handleTodoCompletion } from "../complete/complete";
-import { remove } from "../remove/remove";
-import { handleEditTodoLabel } from "../edit/edit";
-import { getElementId } from "../../utils/getElementId/getElementId";
-import { handleMoveTodo } from "../moving/moving";
+import { 
+    dispatchMoveTodoEvent, 
+    dispatchRemoveSingleTodoEvent, 
+    dispatchTodoCompletionEvent, 
+    fireGlobalEvent, 
+    setInteractionElementsEvent 
+} from "../../events/CustomEvents";
 import { TodoEventTarget } from "../../interfaces/TodoEventTarget";
+import TodoItem from "../../interfaces/TodoItem";
+import { getElementId } from "../../utils/getElementId/getElementId";
 import { setTodoInteractions } from "../../utils/setTodoInteractions/setTodoInteractions";
+import addTodoElementToDom from "../../utils/todoDomElementGeneration/addElementToDom";
+import { handleTodoCompletion } from "../complete/complete";
+import { handleMoveTodo } from "../moving/moving";
+import { remove } from "../remove/remove";
 
-let inputState = '';
-let todoDoneCheckboxList: HTMLInputElement[];
-let deleteSingleTodoButtonList: HTMLButtonElement[];
-let moveTodoInDirectionButtonList: HTMLButtonElement[];
-let todoTitleList: HTMLDivElement[];
+let componentRoot: HTMLElement;
+let todoItems: TodoItem[];
 let uniqueIdForThisTodo = '';
-const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
-const addTodoTextInput = componentRoot.querySelector('[data-todo="addTodoTextInput"]') as HTMLInputElement;
 
-export const handleFormSubmit = () => {
-    if (validateInput(inputState)) {
-        const todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
-        const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
-        const removeAllItemsButton = componentRoot.querySelector('[data-todo="removeAllItemsButton"]') as HTMLButtonElement;
-
-        addTodoItem();
-        createNewTodoDOMElement();
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
-        fireGlobalEvent(setDisabledSortButtonsEvent);
-    }
-}
-
-const createNewTodoDOMElement = () => {
-    const todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS)
+export const createNewTodoDOMElement = () => {
+    componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
+    todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS) ?? [];
     const indexForNewItem = todoItems.length - 1
     const newTodo = todoItems[indexForNewItem];
 
     addTodoElementToDom({
         id: uniqueIdForThisTodo,
         title: newTodo.title,
+        description: newTodo.description,
         completed: newTodo.completed,
     });
 
@@ -65,28 +48,35 @@ const createNewTodoDOMElement = () => {
         {
             doneCheckboxList: targets.doneCheckboxList,
             deleteButtonList: targets.deleteButtonList,
+            editButtonList: targets.editButtonList,
             moveInDirectionButtonList: targets.moveInDirectionButtonList,
             titleList: targets.titleList,
         }
     );
 }
 
-const addTodoItem = () => {
-    const todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS)
+export const addTodoItem = (title: string, description?: string) => {
+    todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS) ?? [];
 
-    if (addTodoTextInput.value.length === 0) return;
+    if (title.length === 0) return;
     uniqueIdForThisTodo = getUniqueId();
 
     const todoItem: TodoItem = {
         id: uniqueIdForThisTodo,
-        title: inputState,
+        title: title,
+        description: description,
         completed: false,
     }
 
     todoItems.push(todoItem);
     setLocalStorage(LocalStorageKeys.TODO_ITEMS, todoItems);
-    addTodoTextInput.value = '';
-    inputState = '';
+}
+
+export const validateTodoContent = (title: string, description?: string) => {
+    if (description)
+        return validateInput(title) && validateInput(description)
+
+    return validateInput(title);
 }
 
 const giveNewTodoEventListeners = (newTodo: TodoItem, index: number, targets: TodoEventTarget) => {
@@ -96,9 +86,6 @@ const giveNewTodoEventListeners = (newTodo: TodoItem, index: number, targets: To
     targets.deleteButtonList[index].addEventListener('click', dispatchRemoveSingleTodoEvent)
     targets.deleteButtonList[index].addEventListener(CustomTodoEvents.REMOVE_SINGLE, remove().removeSingle)
 
-    targets.titleList[index].addEventListener('dblclick', dispatchEditTodoEvent);
-    targets.titleList[index].addEventListener(CustomTodoEvents.EDIT, handleEditTodoLabel);
-
     targets.moveInDirectionButtonList.forEach(button => {
         if (getElementId(button) === newTodo.id) {
             button.addEventListener('click', dispatchMoveTodoEvent);
@@ -106,11 +93,3 @@ const giveNewTodoEventListeners = (newTodo: TodoItem, index: number, targets: To
         }
     })
 }
-
-const setInputState = (event: Event) => {
-    const input = event?.target as HTMLInputElement;
-    inputState = input.value ?? '';
-}
-
-addTodoTextInput.addEventListener( 'input', dispatchSetInputState);
-addTodoTextInput.addEventListener(CustomTodoEvents.SET_INPUT_STATE, setInputState)

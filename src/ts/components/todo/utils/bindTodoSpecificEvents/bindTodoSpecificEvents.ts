@@ -9,8 +9,8 @@ import { CustomTodoEvents } from "../../enums/CustomTodoEventsEnum";
 import { remove } from "../../functions/remove/remove";
 import { handleTodoCompletion } from "../../functions/complete/complete";
 import { handleMoveTodo } from "../../functions/moving/moving";
-import { handleEditTodoLabel } from "../../functions/edit/edit";
 import { TodoEventTarget } from "../../interfaces/TodoEventTarget";
+import { openModal } from "../../functions/modal/modal";
 
 // @TEST figure out how a test would look
 export const bindTodoSpecificEvents = (eventCarrier: TodoEventTarget) => {
@@ -26,7 +26,7 @@ export const bindTodoSpecificEvents = (eventCarrier: TodoEventTarget) => {
     assignBulkEventListeners(eventCarrier.moveInDirectionButtonList, 'click', dispatchMoveTodoEvent);
     assignBulkEventListeners(eventCarrier.moveInDirectionButtonList, CustomTodoEvents.MOVE, handleMoveTodo);
 
-    // edit
-    assignBulkEventListeners(eventCarrier.titleList, 'dblclick', dispatchEditTodoEvent);
-    assignBulkEventListeners(eventCarrier.titleList, CustomTodoEvents.EDIT, handleEditTodoLabel);
+    // move/sort
+    assignBulkEventListeners(eventCarrier.editButtonList, 'click', dispatchEditTodoEvent);
+    assignBulkEventListeners(eventCarrier.editButtonList, CustomTodoEvents.EDIT, openModal);
 }

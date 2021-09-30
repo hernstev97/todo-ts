@@ -11,23 +11,27 @@
     <body>
         <main>
             <div data-component="todo" class="todo-app">
-                <h1>Todo</h1>
-                <div class="add-todo">
-                    <form data-todo="addTodoForm" class="add-todo__form">
-                        <label for="addTodoTextInput">Add a todo:</label>
-                        <input
-                            type="text"
-                            id="addTodoTextInput"
-                            name="addTodoTextInput"
-                            data-todo="addTodoTextInput"
-                            class="add-todo__input"
-                            placeholder="Add a todo..."
-                        />
-                        <button data-todo="addTodoButton" class="add-todo__submit">Add</button>
-                    </form>
+                <div class="todo-app__header"> 
+                    <h1>Todo</h1>
+                    <button data-todo="addTodoButton" data-modal="add" class="add-todo">Add</button>
                     <button data-todo="removeAllItemsButton" class="remove-all-items"></button>
                 </div>
                 <div data-todo="todoList" class="todo-list"></div>
+                <div class="modal-wrapper modal-hidden" data-todo="modalWrapper">
+                    <div class="modal">
+                        <h2>Neues Todo</h2>
+                        <button class="close-modal" data-todo="closeModalButton">Schließen</button>
+                        <label for="heading">Titel</label>
+                        <input type="text" id="heading" name="heading" class="todo__edit" placeholder="Lorem"
+                            data-todo="todoTitleInput">
+                
+                        <label for="description">Beschreibung (optional)</label>
+                        <textarea name="description" id="description" class="todo__edit" data-todo="todoDescriptionInput"
+                            placeholder="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."></textarea>
+                
+                        <button class="add-todo__submit" data-todo="commitTodoButton">Hinzufügen</button>
+                    </div>
+                </div>
             </div>
         </main>
     </body>

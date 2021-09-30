@@ -4,10 +4,10 @@
 @import './components/components.pcss';
 
 .todo-app {
-    padding: 2rem 1rem;
+    padding: 3.5rem 1rem 2rem 1rem;
     max-width: var(--breakpoint);
     background-color: var(--white);
-    box-shadow: 0 0 1.25rem 0 rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow);
     margin: 0 auto;
     min-height: 100vh;
 }
@@ -24,4 +24,60 @@
         --breakpoint: var(--lg);
         --rem: var(--lg-rem);
     }
+}
+
+.modal {
+    pointer-events: auto;
+    position: absolute;
+    max-width: calc(var(--breakpoint) * 0.85);
+    width: 100%;
+    height: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    background-color: var(--white);
+    box-shadow: var(--shadow);
+    border-radius: 1rem;
+
+    label {
+        margin-bottom: 0.5rem;
+    }
+
+    button {
+        align-self: flex-end;
+    }
+}
+
+.modal-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    background-color: var(--transparent-black);
+}
+
+.modal-hidden,
+.modal-hidden * {
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.close-modal {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(20%, -50%);
+    border: none;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 1rem;
+    box-shadow: var(--small-shadow);
+    cursor: pointer;
+    color: black;
 }

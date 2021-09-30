@@ -1,4 +1,4 @@
-import { setLocalStorage } from "../../../../../util/localStorageUtility";
+import { setLocalStorage } from "../../../../../util/localStorage/localStorageUtility";
 import { LocalStorageKeys } from "../../../../../enums/LocalStorageKeysEnum";
 import { fireGlobalEvent, removeCleanUpEvent} from "../../../events/CustomEvents";
 

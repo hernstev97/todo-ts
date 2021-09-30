@@ -4,24 +4,25 @@ export const setInteractionElementsEvent = new CustomEvent(CustomTodoEvents.SET_
 export const setDisabledSortButtonsEvent = new CustomEvent(CustomTodoEvents.SET_DISABLED_SORT_BUTTONS)
 export const bindEventsTodoSpecificEvent = new CustomEvent(CustomTodoEvents.BIND_EVENTS)
 export const removeCleanUpEvent = new CustomEvent(CustomTodoEvents.REMOVE_CLEANUP)
-const editEvent = new CustomEvent(CustomTodoEvents.EDIT)
 const moveEvent = new CustomEvent(CustomTodoEvents.MOVE)
 const completeEvent = new CustomEvent(CustomTodoEvents.TOGGLE_COMPLETE)
-const setInputStateEvent = new CustomEvent(CustomTodoEvents.SET_INPUT_STATE)
+const setTitleStateEvent = new CustomEvent(CustomTodoEvents.SET_TITLE_STATE)
+const setDescriptionStateEvent = new CustomEvent(CustomTodoEvents.SET_DESCRIPTION_STATE)
 const removeSingleEvent = new CustomEvent(CustomTodoEvents.REMOVE_SINGLE)
 const removeAllEvent = new CustomEvent(CustomTodoEvents.REMOVE_ALL)
 const addEvent = new CustomEvent(CustomTodoEvents.ADD)
+const editEvent = new CustomEvent(CustomTodoEvents.EDIT)
 
 export const dispatchTodoCompletionEvent = (event: Event | MouseEvent | CustomEvent) => {
     event.currentTarget?.dispatchEvent(completeEvent)
 }
 
-export const dispatchSetInputState = (event: Event) => {
-    event.currentTarget?.dispatchEvent(setInputStateEvent);
+export const dispatchSetTitleState = (event: Event) => {
+    event.currentTarget?.dispatchEvent(setTitleStateEvent);
 }
 
-export const dispatchEditTodoEvent = (event: Event | MouseEvent | CustomEvent) => {
-    event.currentTarget?.dispatchEvent(editEvent)
+export const dispatchSetDescriptionState = (event: Event) => {
+    event.currentTarget?.dispatchEvent(setDescriptionStateEvent);
 }
 
 export const dispatchMoveTodoEvent = (event: Event | MouseEvent | CustomEvent) => {
@@ -39,6 +40,10 @@ export const dispatchRemoveAllTodoEvent = (event: Event | MouseEvent | CustomEve
 export const addTodoEvent = (event: Event | MouseEvent | CustomEvent) => {
     event.preventDefault();
     event.currentTarget?.dispatchEvent(addEvent)
+}
+
+export const dispatchEditTodoEvent = (event: Event | MouseEvent | CustomEvent) => {
+    event.currentTarget?.dispatchEvent(editEvent)
 }
 
 export const fireGlobalEvent = (eventName: CustomEvent<unknown>) => {

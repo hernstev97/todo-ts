@@ -2,7 +2,7 @@ import TodoItem from "../../interfaces/TodoItem";
 import setFontSizeForEachTodo from "../../utils/setFontSizeForEachTodo/setFontSizeForEachTodo";
 import getDeviceOutput from "../../../../util/getDeviceOutput/getDeviceOutput";
 import { renderAllTodos } from "../../utils/renderAllTodos/renderAllTodos";
-import { getLocalStorage, setLocalStorage } from "../../../../util/localStorageUtility";
+import { getLocalStorage, setLocalStorage } from "../../../../util/localStorage/localStorageUtility";
 import { getElementId } from "../../utils/getElementId/getElementId";
 import { getTodoItemById } from "../../utils/getTodoItemById/getTodoItemById";
 import { getSelectedDirection } from "../../utils/getSelectedDirection/getSelectedDirection";
@@ -15,7 +15,6 @@ import {
     setInteractionElementsEvent
 } from "../../events/CustomEvents";
 
-// @CLEANUP clean up file
 export const handleMoveTodo = (event: Event) => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
     const todoList = componentRoot.querySelector('[data-todo="todoList"]') as HTMLDivElement;
@@ -38,10 +37,7 @@ export const handleMoveTodo = (event: Event) => {
 const moveTodoInDirection = (event: Event) => {
     let todoItems: TodoItem[] = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
     const moveButton = event.currentTarget as HTMLButtonElement;
-    // @TODO find a way to find the index easier
-    const buttonId = getElementId(moveButton);
-    const todoItemToMove = getTodoItemById(todoItems, buttonId) as TodoItem;
-    const indexOfTodoItemToMove = todoItems.indexOf(todoItemToMove);
+    const indexOfTodoItemToMove = indexOfItemToMoveByButton(moveButton, todoItems);
 
     if (getSelectedDirection(moveButton, 'up'))
         todoItems = swapTodoIndexByDirection(todoItems, indexOfTodoItemToMove, 'up')
@@ -49,4 +45,11 @@ const moveTodoInDirection = (event: Event) => {
         todoItems = swapTodoIndexByDirection(todoItems, indexOfTodoItemToMove, 'down')
 
     setLocalStorage(LocalStorageKeys.TODO_ITEMS, todoItems);
+}
+
+const indexOfItemToMoveByButton = (moveButton: Element, todoItems: TodoItem[]): number => {
+    const buttonId = getElementId(moveButton);
+    const todoItemToMove = getTodoItemById(todoItems, buttonId) as TodoItem;
+
+    return todoItems.indexOf(todoItemToMove);
 }

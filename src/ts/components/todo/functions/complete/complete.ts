@@ -1,4 +1,4 @@
-import { getLocalStorage, setLocalStorage } from "../../../../util/localStorageUtility";
+import { getLocalStorage, setLocalStorage } from "../../../../util/localStorage/localStorageUtility";
 import { getTodoItemById } from "../../utils/getTodoItemById/getTodoItemById";
 import { getTodoFromEventPath } from "../../utils/getParentFromWithin/getTodoFromEventPath";
 import { LocalStorageKeys } from "../../../../enums/LocalStorageKeysEnum";

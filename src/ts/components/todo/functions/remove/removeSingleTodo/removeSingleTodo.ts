@@ -1,4 +1,4 @@
-import { getLocalStorage, setLocalStorage } from "../../../../../util/localStorageUtility";
+import { getLocalStorage, setLocalStorage } from "../../../../../util/localStorage/localStorageUtility";
 import { LocalStorageKeys } from "../../../../../enums/LocalStorageKeysEnum";
 import { getElementId } from "../../../utils/getElementId/getElementId";
 import { getTodoFromEventPath } from "../../../utils/getParentFromWithin/getTodoFromEventPath";
@@ -7,7 +7,6 @@ import { fireGlobalEvent, removeCleanUpEvent } from "../../../events/CustomEvent
 
 export const removeSingleTodo = (target: EventTarget | null, path: EventTarget[]) => {
     const todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
-    console.log('target', target)
     const deletable = target as Element;
     const removeId = getElementId(deletable);
     const parent = getTodoFromEventPath(path);
@@ -18,9 +17,6 @@ export const removeSingleTodo = (target: EventTarget | null, path: EventTarget[]
         if (todoIndex === toRemoveTodoIndex)
             todoItems.splice(todoIndex, 1);
     }
-
-    console.log('event.composedPath()', path);
-    console.log("parent -> ", parent)
 
     if (parent) parent.remove();
 

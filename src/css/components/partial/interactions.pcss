@@ -1,0 +1,35 @@
+.todo__interaction {
+    appearance: none;
+    border: 1px solid var(--black);
+    padding: 0.2rem 0.3rem;
+    font-size: 0.75rem;
+    border-radius: 1.5rem;
+    cursor: pointer;
+    background-color: transparent;
+
+    &--done {
+        &:hover {
+            color: var(--ok-green);
+            border-color: var(--ok-green);
+        }
+
+        &::after {
+            content: 'Erledigen';
+        }
+
+        &:checked::after {
+            content: 'Erledigt';
+            text-decoration: line-through;
+        }
+    }
+
+    &--edit:hover {
+        color: var(--strong-blue);
+        border-color: var(--strong-blue);
+    }
+
+    &--delete:hover {
+        color: var(--delete-red);
+        border-color: var(--delete-red);
+    }
+}

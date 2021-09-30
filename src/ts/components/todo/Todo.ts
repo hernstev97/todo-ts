@@ -2,7 +2,7 @@ import TodoItem from "./interfaces/TodoItem";
 import allItemsRemoveButtonVisibilityHandler from "./utils/allItemsRemoveButtonVisibilityHandler";
 import setFontSizeForEachTodo from "./utils/setFontSizeForEachTodo/setFontSizeForEachTodo";
 import getDeviceOutput from "../../util/getDeviceOutput/getDeviceOutput";
-import { getLocalStorage } from "../../util/localStorageUtility";
+import { getLocalStorage } from "../../util/localStorage/localStorageUtility";
 import { renderAllTodos } from "./utils/renderAllTodos/renderAllTodos";
 import { remove } from "./functions/remove/remove";
 import { setDisabledSortButtons } from "./utils/setDisabledSortButtons/setDisabledSortButtons";
@@ -12,19 +12,22 @@ import {
     bindEventsTodoSpecificEvent,
     setDisabledSortButtonsEvent,
     dispatchRemoveAllTodoEvent,
-    fireGlobalEvent, addTodoEvent,
+    fireGlobalEvent, 
+    addTodoEvent,
 } from "./events/CustomEvents";
 import { bindTodoSpecificEvents } from "./utils/bindTodoSpecificEvents/bindTodoSpecificEvents";
-import { handleFormSubmit } from "./functions/add/add";
+import { openModal } from "./functions/modal/modal";
 
 export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
     const removeAllItemsButton = componentRoot.querySelector('[data-todo="removeAllItemsButton"]') as HTMLButtonElement;
     const addTodoFormElement = componentRoot.querySelector('[data-todo="addTodoForm"]') as HTMLFormElement;
     const todoList = componentRoot.querySelector('[data-todo="todoList"]') as HTMLDivElement
+    let addTodoButton = document.querySelector('[data-todo="addTodoButton"]') as HTMLButtonElement;
     let todoElementNodeList: NodeListOf<Element>;
     let todoDoneCheckboxList: HTMLInputElement[];
     let deleteSingleTodoButtonList: HTMLButtonElement[];
+    let editTodoButtonList: HTMLButtonElement[];
     let moveTodoInDirectionButtonList: HTMLButtonElement[];
     let todoTitleList: HTMLDivElement[];
     let todoItems: TodoItem[] = [];
@@ -50,6 +53,7 @@ export const todo = () => {
         todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
         todoDoneCheckboxList = Array.from(componentRoot.querySelectorAll('[data-todo="todoCompletedCheckbox"]')) as HTMLInputElement[];
         deleteSingleTodoButtonList = Array.from(componentRoot.querySelectorAll('[data-todo="deleteSingleTodoButton"]')) as HTMLButtonElement[];
+        editTodoButtonList = Array.from(componentRoot.querySelectorAll('[data-todo="editTodoButton"]')) as HTMLButtonElement[];
         moveTodoInDirectionButtonList = Array.from(componentRoot.querySelectorAll('[data-moveTodoInDirection]')) as HTMLButtonElement[];
         todoTitleList = Array.from(componentRoot.querySelectorAll('[data-todo="todoTitle"]')) as HTMLDivElement[];
     }
@@ -61,15 +65,18 @@ export const todo = () => {
             bindTodoSpecificEvents({
                 doneCheckboxList: todoDoneCheckboxList,
                 deleteButtonList: deleteSingleTodoButtonList,
+                editButtonList: editTodoButtonList,
                 moveInDirectionButtonList: moveTodoInDirectionButtonList,
                 titleList: todoTitleList
             })
         })
 
+        document.addEventListener(CustomTodoEvents.SET_DISABLED_SORT_BUTTONS, setDisabledSortButtons)
+
         fireGlobalEvent(bindEventsTodoSpecificEvent);
 
-        addTodoFormElement.addEventListener('submit', addTodoEvent);
-        addTodoFormElement.addEventListener(CustomTodoEvents.ADD, handleFormSubmit);
+        addTodoButton.addEventListener('click', addTodoEvent);
+        addTodoButton.addEventListener(CustomTodoEvents.ADD, openModal);
 
         removeAllItemsButton.addEventListener('click', dispatchRemoveAllTodoEvent);
         removeAllItemsButton.addEventListener(CustomTodoEvents.REMOVE_ALL, remove().removeAll);

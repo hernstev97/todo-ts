@@ -15,11 +15,13 @@ describe('sets several elements for interaction and returns them as an object', 
         {
             id: 'uid#18AEDLWMm3',
             title: '1',
+            description: 'test',
             completed: false,
         },
         {
             id: 'uid#494Vn9Kj3p',
             title: '2',
+            description: '',
             completed: false,
         }
     ]
@@ -28,6 +30,7 @@ describe('sets several elements for interaction and returns them as an object', 
         addTodoElementToDom({
             id: item.id,
             title: item.title,
+            description: item.description,
             completed: item.completed,
         })
     })

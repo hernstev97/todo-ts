@@ -1,5 +1,5 @@
 import {LocalStorageKeys} from "../../enums/LocalStorageKeysEnum";
-import {getLocalStorage, setLocalStorage} from "../localStorageUtility";
+import {getLocalStorage, setLocalStorage} from "../localStorage/localStorageUtility";
 
 let allIds: string[] = [];
 
