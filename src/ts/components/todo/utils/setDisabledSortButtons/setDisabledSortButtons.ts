@@ -2,7 +2,6 @@ import { removeDisabledAttribute, setDisabledAttribute } from "../../../../util/
 import { getLocalStorage } from "../../../../util/localStorage/localStorageUtility";
 import { LocalStorageKeys } from "../../../../enums/LocalStorageKeysEnum";
 
-// @TEST a test needs a local storage mock
 export const setDisabledSortButtons = () => {
     const todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS);
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
@@ -15,6 +14,6 @@ export const setDisabledSortButtons = () => {
             removeDisabledAttribute(todo, '[data-moveTodoInDirection="down"]')
         })
         setDisabledAttribute(firstTodo, '[data-moveTodoInDirection="up"]')
-        setDisabledAttribute(lastTodo, '[data-moveTodoInDirection="down"]')
+        setDisabledAttribute(lastTodo, '[data-moveTodoInDirection="down"]');
     }
 }

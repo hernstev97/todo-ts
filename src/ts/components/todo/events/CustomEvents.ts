@@ -37,7 +37,7 @@ export const dispatchRemoveAllTodoEvent = (event: Event | MouseEvent | CustomEve
     event.currentTarget?.dispatchEvent(removeAllEvent)
 }
 
-export const addTodoEvent = (event: Event | MouseEvent | CustomEvent) => {
+export const dispatchAddTodoEvent = (event: Event | MouseEvent | CustomEvent) => {
     event.preventDefault();
     event.currentTarget?.dispatchEvent(addEvent)
 }

@@ -13,17 +13,16 @@ import {
     setDisabledSortButtonsEvent,
     dispatchRemoveAllTodoEvent,
     fireGlobalEvent, 
-    addTodoEvent,
+    dispatchAddTodoEvent,
 } from "./events/CustomEvents";
 import { bindTodoSpecificEvents } from "./utils/bindTodoSpecificEvents/bindTodoSpecificEvents";
-import { openModal } from "./functions/modal/modal";
+import { todoModal } from "./functions/modal/todoModal";
 
 export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
     const removeAllItemsButton = componentRoot.querySelector('[data-todo="removeAllItemsButton"]') as HTMLButtonElement;
-    const addTodoFormElement = componentRoot.querySelector('[data-todo="addTodoForm"]') as HTMLFormElement;
     const todoList = componentRoot.querySelector('[data-todo="todoList"]') as HTMLDivElement
-    let addTodoButton = document.querySelector('[data-todo="addTodoButton"]') as HTMLButtonElement;
+    const addTodoButton = document.querySelector('[data-todo="addTodoButton"]') as HTMLButtonElement;
     let todoElementNodeList: NodeListOf<Element>;
     let todoDoneCheckboxList: HTMLInputElement[];
     let deleteSingleTodoButtonList: HTMLButtonElement[];
@@ -39,7 +38,7 @@ export const todo = () => {
         setInteractionElements();
         bindEvents();
         fireGlobalEvent(setDisabledSortButtonsEvent);
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+        allItemsRemoveButtonVisibilityHandler(removeAllItemsButton);
         setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
     }
 
@@ -75,8 +74,8 @@ export const todo = () => {
 
         fireGlobalEvent(bindEventsTodoSpecificEvent);
 
-        addTodoButton.addEventListener('click', addTodoEvent);
-        addTodoButton.addEventListener(CustomTodoEvents.ADD, openModal);
+        addTodoButton.addEventListener('click', dispatchAddTodoEvent);
+        addTodoButton.addEventListener(CustomTodoEvents.ADD, todoModal().open);
 
         removeAllItemsButton.addEventListener('click', dispatchRemoveAllTodoEvent);
         removeAllItemsButton.addEventListener(CustomTodoEvents.REMOVE_ALL, remove().removeAll);
@@ -94,7 +93,6 @@ export const todo = () => {
         });
     }
 
-    // @TODO might not be needed in here
     const removeCleanUp = () => {
         todoElementNodeList = componentRoot.querySelectorAll('[data-todo="todoItem"]');
 

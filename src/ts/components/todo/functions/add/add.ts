@@ -4,23 +4,14 @@ import {
     setLocalStorage 
 } from "../../../../util/localStorage/localStorageUtility";
 import getUniqueId from "../../../../util/uniqueId/uniqueId";
-import validateInput from "../../../../util/validateInput/validateInput";
-import { CustomTodoEvents } from "../../enums/CustomTodoEventsEnum";
 import { 
-    dispatchMoveTodoEvent, 
-    dispatchRemoveSingleTodoEvent, 
-    dispatchTodoCompletionEvent, 
     fireGlobalEvent, 
     setInteractionElementsEvent 
 } from "../../events/CustomEvents";
-import { TodoEventTarget } from "../../interfaces/TodoEventTarget";
 import TodoItem from "../../interfaces/TodoItem";
-import { getElementId } from "../../utils/getElementId/getElementId";
 import { setTodoInteractions } from "../../utils/setTodoInteractions/setTodoInteractions";
 import addTodoElementToDom from "../../utils/todoDomElementGeneration/addElementToDom";
-import { handleTodoCompletion } from "../complete/complete";
-import { handleMoveTodo } from "../moving/moving";
-import { remove } from "../remove/remove";
+import { giveNewTodoEventListeners } from "./giveNewTodoEventListeners/giveNewTodoEventListeners";
 
 let componentRoot: HTMLElement;
 let todoItems: TodoItem[];
@@ -70,26 +61,4 @@ export const addTodoItem = (title: string, description?: string) => {
 
     todoItems.push(todoItem);
     setLocalStorage(LocalStorageKeys.TODO_ITEMS, todoItems);
-}
-
-export const validateTodoContent = (title: string, description?: string) => {
-    if (description)
-        return validateInput(title) && validateInput(description)
-
-    return validateInput(title);
-}
-
-const giveNewTodoEventListeners = (newTodo: TodoItem, index: number, targets: TodoEventTarget) => {
-    targets.doneCheckboxList[index].addEventListener('change', dispatchTodoCompletionEvent);
-    targets.doneCheckboxList[index].addEventListener(CustomTodoEvents.TOGGLE_COMPLETE, handleTodoCompletion);
-
-    targets.deleteButtonList[index].addEventListener('click', dispatchRemoveSingleTodoEvent)
-    targets.deleteButtonList[index].addEventListener(CustomTodoEvents.REMOVE_SINGLE, remove().removeSingle)
-
-    targets.moveInDirectionButtonList.forEach(button => {
-        if (getElementId(button) === newTodo.id) {
-            button.addEventListener('click', dispatchMoveTodoEvent);
-            button.addEventListener(CustomTodoEvents.MOVE, handleMoveTodo);
-        }
-    })
 }

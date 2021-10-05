@@ -8,6 +8,6 @@ const eventName = {
     currentTarget: target as EventTarget,
 } as CustomEvent
 
-test('', () => {
+test('finds the id of the current eventtarget', () => {
     expect(getIdOfCurrentTarget(eventName)).toMatch(/uid#[a-zA-Z0-9]*/i)
 })

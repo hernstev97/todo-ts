@@ -1,11 +1,15 @@
-// @TEST local storage mock does not work yet
-
 class LocalStorageMock {
-    store: Record<string, any>
+    store: Record<string, any>;
+    length: number;
 
     constructor() {
         this.store = {};
+        this.length = 0;
     }
+
+    key(index: number) {
+        return `${index}`
+    };
 
     clear() {
         this.store = {};
@@ -24,4 +28,4 @@ class LocalStorageMock {
     }
 }
 
-export const localStorage = new LocalStorageMock;
+global.localStorage = new LocalStorageMock;

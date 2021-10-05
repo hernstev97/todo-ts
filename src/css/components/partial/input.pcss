@@ -26,13 +26,22 @@ label[for='addTodoTextInput'] {
     border-radius: 0.3rem;
     width: 100%;
     height: 100%;
-    margin-bottom: 1.5rem;
 
     &:focus {
         outline: none;
     }
 }
 
+.error-message {
+    color: var(--delete-red);
+    margin-top: 0.2rem;
+    font-size: 0.8rem;
+}
+
 textarea.todo__edit {
     min-height: 10rem;
+}
+
+.todo__edit-label {
+    margin-top: 1.5rem;
 }

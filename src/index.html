@@ -17,18 +17,18 @@
                     <button data-todo="removeAllItemsButton" class="remove-all-items"></button>
                 </div>
                 <div data-todo="todoList" class="todo-list"></div>
-                <div class="modal-wrapper modal-hidden" data-todo="modalWrapper">
+                <div class="modal-wrapper modal-hidden" data-component="modalWrapper">
                     <div class="modal">
-                        <h2>Neues Todo</h2>
-                        <button class="close-modal" data-todo="closeModalButton">Schließen</button>
-                        <label for="heading">Titel</label>
+                        <h2>###PLACEHOLDER###</h2>
+                        <button class="close-modal" data-modal="closeModalButton">Schließen</button>
+                        <label class="todo__edit-label" for="heading">Titel</label>
                         <input type="text" id="heading" name="heading" class="todo__edit" placeholder="Lorem"
-                            data-todo="todoTitleInput">
+                        data-todo="todoTitleInput">
+                        <p class="error-message"></p>
                 
-                        <label for="description">Beschreibung (optional)</label>
+                        <label class="todo__edit-label" for="description">Beschreibung (optional)</label>
                         <textarea name="description" id="description" class="todo__edit" data-todo="todoDescriptionInput"
                             placeholder="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."></textarea>
-                
                         <button class="add-todo__submit" data-todo="commitTodoButton">Hinzufügen</button>
                     </div>
                 </div>

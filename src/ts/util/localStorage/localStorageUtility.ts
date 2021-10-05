@@ -1,14 +1,14 @@
 export function getLocalStorage<T>(key: string) {
-    const localStorage = window.localStorage.getItem(key);
+    const storage = localStorage.getItem(key);
     if (
-        localStorage !== null
-        && localStorage !== 'undefined'
-        && localStorage !== ''
+        storage !== null
+        && storage !== 'undefined'
+        && storage !== ''
     ) {
-        return JSON.parse(localStorage);
+        return JSON.parse(storage);
     }
 }
 
 export function setLocalStorage<T>(key: string, object: T) {
-    window.localStorage.setItem(key, JSON.stringify(object));
+    localStorage.setItem(key, JSON.stringify(object));
 }

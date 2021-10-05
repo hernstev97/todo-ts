@@ -13,13 +13,13 @@ export const remove = () => {
     const removeSingle = (event: Event) => {
         removeSingleTodo(event.target, event.composedPath());
         fireGlobalEvent(setDisabledSortButtonsEvent)
-        allItemsRemoveButtonVisibilityHandler(todoItems, removeAllItemsButton);
+        allItemsRemoveButtonVisibilityHandler(removeAllItemsButton);
     }
 
     const removeAll = (event: Event) => {
         let todoElementNodeList: NodeListOf<Element> = componentRoot.querySelectorAll('[data-todo="todoItem"]');
         removeAllTodos(event, todoElementNodeList)
-        allItemsRemoveButtonVisibilityHandler([], removeAllItemsButton);
+        allItemsRemoveButtonVisibilityHandler(removeAllItemsButton);
     }
 
     return {

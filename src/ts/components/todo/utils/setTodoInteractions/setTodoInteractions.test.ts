@@ -9,6 +9,7 @@ describe('sets several elements for interaction and returns them as an object', 
 
     const list = document.createElement('div');
     list.classList.add('todo-list');
+    list.setAttribute('data-todo', 'todoList');
     componentRoot.appendChild(list);
 
     const items = [

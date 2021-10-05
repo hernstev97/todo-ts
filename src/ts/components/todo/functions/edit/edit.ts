@@ -5,7 +5,7 @@ import TodoItem from "../../interfaces/TodoItem";
 import { getTodoItemById } from "../../utils/getTodoItemById/getTodoItemById";
 import setFontSizeForEachTodo from "../../utils/setFontSizeForEachTodo/setFontSizeForEachTodo";
 
-export const editTodoItem = (todoItems: TodoItem[], idOfEditableTodo: string, titleState: string, descriptionState?: string) => {
+export const editTodoItem = (todoItems: TodoItem[], idOfEditableTodo: string, titleState: string = '', descriptionState?: string) => {
     const todoElementNodeList = document.querySelectorAll('[data-todo="todoItem"]') as NodeListOf<Element>;
     const todoElement = Array.from(todoElementNodeList).find(element => element.getAttribute('data-id') === idOfEditableTodo);
     const todoItem = getTodoItemById(todoItems, idOfEditableTodo);
