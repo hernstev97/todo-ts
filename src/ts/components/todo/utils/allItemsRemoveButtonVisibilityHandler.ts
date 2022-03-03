@@ -1,6 +1,5 @@
 import { LocalStorageKeys } from "../../../enums/LocalStorageKeysEnum";
 import { getLocalStorage } from "../../../util/localStorage/localStorageUtility";
-import TodoItem from "../interfaces/TodoItem";
 
 export default function allItemsRemoveButtonVisibilityHandler(button: HTMLButtonElement) {
     const todoItems = getLocalStorage(LocalStorageKeys.TODO_ITEMS)

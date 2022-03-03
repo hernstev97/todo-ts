@@ -29,7 +29,7 @@ export const handleMoveTodo = (event: Event) => {
     setFontSizeForEachTodo(todoElementNodeList, getDeviceOutput(window.innerWidth));
 
     // here all listeners for elements inside a todoElement have to be set again
-    // because within the renderAllTodos function the innerHTML of the todolist ist emptied
+    // because within the renderAllTodos function the innerHTML of the todolist is emptied
     // which deletes all listeners as well
     fireGlobalEvent(bindEventsTodoSpecificEvent);
 }

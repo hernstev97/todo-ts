@@ -22,7 +22,7 @@ export const todo = () => {
     const componentRoot = document.querySelector('[data-component="todo"]') as HTMLElement;
     const removeAllItemsButton = componentRoot.querySelector('[data-todo="removeAllItemsButton"]') as HTMLButtonElement;
     const todoList = componentRoot.querySelector('[data-todo="todoList"]') as HTMLDivElement
-    const addTodoButton = document.querySelector('[data-todo="addTodoButton"]') as HTMLButtonElement;
+    const addTodoButton = componentRoot.querySelector('[data-todo="addTodoButton"]') as HTMLButtonElement;
     let todoElementNodeList: NodeListOf<Element>;
     let todoDoneCheckboxList: HTMLInputElement[];
     let deleteSingleTodoButtonList: HTMLButtonElement[];

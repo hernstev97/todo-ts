@@ -1,26 +1,5 @@
-import { removeSingleTodo } from "./removeSingleTodo";
-import { composedPath } from "../../../mock/composedPath";
-import { setLocalStorage } from "../../../../../util/localStorage/localStorageUtility";
-import { LocalStorageKeys } from "../../../../../enums/LocalStorageKeysEnum";
-import addTodoElementToDom from "../../../utils/todoDomElementGeneration/addElementToDom";
-
 const target = document.createElement('button');
 target.setAttribute('data-id', 'uid#4tDI4v2Nb6')
-
-const todoItems = [
-    {
-        "id":"uid#40iV8A5404",
-        "title":"Einkaufen",
-        "description":"Brot, Nudeln, Küchenrolle",
-        "completed":false
-    },
-    {
-        "id":"uid#4tDI4v2Nb6",
-        "title":"Post reinholen",
-        "description":"",
-        "completed":false
-    }
-]
 
 const componentRootElement = document.createElement('div');
 const todoList = document.createElement('div');
@@ -57,23 +36,3 @@ targetTodo.innerHTML = `<div class="todo__flex-container">
                                 </div>
                             </div>
                         </div>`
-
-// @TEST the test does not yet work fully
-// might be because the targetTodo is not exactly the same as in todoListElementAfter
-// test('removes only one todo from localStorage and the ui', () => {
-//     setLocalStorage(LocalStorageKeys.TODO_ITEMS, todoItems);
-//     todoItems.forEach(todoItem => {
-//         addTodoElementToDom(todoItem);
-//     });
-
-//     const path = composedPath(targetTodo);
-
-//     removeSingleTodo(target as EventTarget, path);
-
-//     const todoListElementAfter = document.querySelector('[data-todo="todoList"]');
-//     const regex = new RegExp(' ', 'g');
-
-//     console.log('todoListElementAfter?.outerHTML', todoListElementAfter?.outerHTML)
-
-//     expect(todoListAfter.replace(regex, '')).toEqual(todoListElementAfter?.outerHTML.replace(regex, ''));
-// });
