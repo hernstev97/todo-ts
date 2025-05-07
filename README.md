@@ -1,4 +1,4 @@
-# ci-todo
+# todo project
 
 A simple todo app written in typescript that works within the local storage.
 
